@@ -1,0 +1,67 @@
+{
+  "variables": {
+    "access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "region": "{{env `AWS_REGION`}}",
+    "source_ami": "{{env `AWS_SOURCE_AMI`}}",
+    "instance_type": "{{env `AWS_BUILD_INSTANCE_TYPE`}}",
+    "subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "security_group": "{{env `AWS_SECURITY_GROUP_ID`}}"
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `access_key`}}",
+    "secret_key": "{{user `secret_key`}}",
+    "region": "{{user `region`}}",
+    "source_ami": "{{user `source_ami`}}",
+    "instance_type": "{{user `instance_type`}}",
+    "ssh_username": "centos",
+    "ami_name": "centos-kubevirt-{{timestamp}}",
+
+    "subnet_id": "{{user `subnet_id`}}",
+    "associate_public_ip_address": "true",
+    "security_group_id": "{{user `security_group`}}"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "image-files/kubevirt-ansible",
+      "destination": "/home/centos"
+    },
+    {
+      "type": "file",
+      "source": "image-files/cluster-wait.yml",
+      "destination": "/home/centos/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/kubevirt-installer.service",
+      "destination": "/home/centos/"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo mv /home/centos/kubevirt-installer.service /usr/lib/systemd/system/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/first-boot-centos.sh",
+      "destination": "/home/centos/first-boot.sh"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo mv /home/centos/first-boot.sh /usr/local/bin/"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo systemctl daemon-reload"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo systemctl enable kubevirt-installer"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit"
+    }
+  ]
+}

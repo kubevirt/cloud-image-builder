@@ -1,0 +1,18 @@
+- name: wait for kube-controller and kube-dns to be up
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: wait for kube-controller to have Running status
+      shell: kubectl get pods --kubeconfig /etc/kubernetes/admin.conf --all-namespaces | grep kube-controller
+      register: kube_controller_status
+      until: kube_controller_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+    - name: wait for kube-dns to have Running status
+      shell: kubectl get pods --kubeconfig /etc/kubernetes/admin.conf --all-namespaces | grep dns
+      register: kube_dns_status
+      until: kube_dns_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10

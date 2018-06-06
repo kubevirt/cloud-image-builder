@@ -1,0 +1,5 @@
+# ---------------------------
+# SSH
+# ---------------------------
+ssh_known_hosts_command: "ssh-keyscan -H -T 10"
+ssh_known_hosts_file: "~/.ssh/known_hosts"

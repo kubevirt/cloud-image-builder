@@ -1,0 +1,11 @@
+[Unit]
+Description=Kubernetes and Kubevirt Installer at first boot
+Before=sshd.service
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/first-boot.sh
+
+[Install]
+WantedBy=multi-user.target
