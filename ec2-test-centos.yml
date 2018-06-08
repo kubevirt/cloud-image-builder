@@ -30,7 +30,6 @@
              volume_size: 29
              delete_on_termination: true
          vpc_subnet_id: "{{ aws_subnet_id }}"
-         spot_price: .046
       register: ec2
 
     - name: Add new instance to host group
