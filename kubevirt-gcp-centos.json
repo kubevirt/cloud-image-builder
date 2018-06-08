@@ -1,0 +1,69 @@
+{
+  "builders": [
+    {
+      "type": "googlecompute",
+      "account_file": "kubevirt-button-11642eb3792d.json",
+      "project_id": "kubevirt-button",
+      "source_image_family": "centos-7",
+      "disk_size": 50,
+      "image_description": "Kubevirt button",
+      "image_name": "kubevirt-button4",
+      "instance_name": "kubevirt",
+      "machine_type": "custom-2-8192",
+      "ssh_username": "centos",
+      "zone": "us-central1-a",
+      "image_licenses": ["projects/vm-options/global/licenses/enable-vmx"]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "image-files/kubevirt-ansible",
+      "destination": "/home/centos"
+    },
+    {
+      "type": "file",
+      "source": "image-files/cluster-wait.yml",
+      "destination": "/home/centos/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/virtctl",
+      "destination": "/home/centos/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/kubevirt-installer.service",
+      "destination": "/home/centos/"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo mv /home/centos/kubevirt-installer.service /usr/lib/systemd/system/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/first-boot-centos.sh",
+      "destination": "/home/centos/first-boot.sh"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo mv /home/centos/first-boot.sh /usr/local/bin/"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo systemctl daemon-reload"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo systemctl enable kubevirt-installer"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit"
+    },
+    {
+      "type": "shell",
+      "inline": "sudo yum update -y"
+    }
+  ]
+}
