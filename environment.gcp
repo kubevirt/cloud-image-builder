@@ -1,0 +1,8 @@
+# Packer build
+#export GOOGLE_APPLICATION_CREDENTIALS=""
+export IMAGE_NAME=kubevirt-button
+export MACHINE_TYPE=custom-2-8192
+export PACKER=`which packer`
+export PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
+export PROJECT="kubevirt-button"
+export ZONE=us-central1-a

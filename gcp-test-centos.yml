@@ -1,0 +1,95 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    machine_type: "{{ lookup('env', 'MACHINE_TYPE') }}"
+    credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
+    project_id: "{{ lookup('env', 'PROJECT') }}"
+    zone: "{{ lookup('env', 'ZONE') }}"
+  tasks:
+    - name: Provision the test instance
+      gce:
+         instance_names: my-test-instance1
+         zone: "{{ zone }}"
+         machine_type: "{{ machine_type }}"
+         image: centos-7
+         state: present
+         credentials_file: "{{ credentials_file }}"
+         project_id: "{{ project }}"
+         disk_size: 40
+      register: gce
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: launched
+      with_items: "{{ gce.instances }}"
+
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22
+        delay: 60
+        timeout: 600
+        state: started
+      with_items: "{{ gce.instances }}"
+
+    - name: Make sure the known hosts file exists
+      file: "path={{ ssh_known_hosts_file }} state=touch"
+
+    - name: Check host name availability
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ item.public_ip }}"
+      with_items: "{{ gce.instances }}"
+      register: z_ssh_known_host_results
+      ignore_errors: yes
+
+    - name: Scan the public key
+      shell: "{{ ssh_known_hosts_command}} {{ item.item.public_ip }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ z_ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+- name: Run tests on instance
+  hosts: launched
+  user: centos
+  become: True
+  gather_facts: True
+  tasks: 
+    - name: copy yaml files
+      copy:
+        src: ./tests/
+        dest: /home/centos/tests/
+        owner: centos
+        group: centos
+
+    - name: create hostpath storage class
+      command: kubectl apply -f /home/centos/tests/storage-setup.yaml
+
+    - name: create cdi provisioner
+      command: kubectl apply -f /home/centos/tests/cdi-setup.yaml
+
+    - name: wait for cdi-deployment pod to become Running
+      shell: kubectl get pods | grep cdi-deployment
+      register: cdi_deployment_status
+      until: cdi_deployment_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+    - name: deploy vm
+      command: kubectl apply -f /home/centos/tests/cirros-pvc.yaml
+
+    - name: wait for cirros-pvc to become Bound
+      shell: kubectl get pvc | grep cirros-pvc
+      register: cirros_pvc_status
+      until: cirros_pvc_status.stdout.find("Bound") != -1
+      retries: 12
+      delay: 5
+
+    - name: deploy vm
+      command: kubectl apply -f /home/centos/tests/cirros-vm.yaml
+
+    - name: wait for cirros vm to be Running
+      shell: kubectl describe vm cirros-vm | grep Phase
+      register: cirros_vm_status
+      until: cirros_vm_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
