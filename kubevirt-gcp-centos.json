@@ -2,16 +2,16 @@
   "builders": [
     {
       "type": "googlecompute",
-      "account_file": "kubevirt-button-11642eb3792d.json",
+      "account_file": "{{env `GOOGLE_APPLICATION_CREDENTIALS`}}",
       "project_id": "kubevirt-button",
       "source_image_family": "centos-7",
-      "disk_size": 50,
+      "disk_size": 30,
       "image_description": "Kubevirt button",
-      "image_name": "kubevirt-button4",
+      "image_name": "{{env `IMAGE_NAME`}}",
       "instance_name": "kubevirt",
-      "machine_type": "custom-2-8192",
+      "machine_type": "{{env `MACHINE_TYPE`}}",
       "ssh_username": "centos",
-      "zone": "us-central1-a",
+      "zone": "{{env `ZONE`}}",
       "image_licenses": ["projects/vm-options/global/licenses/enable-vmx"]
     }
   ],
