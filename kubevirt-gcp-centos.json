@@ -1,17 +1,25 @@
 {
+  "variables": {
+    "account_file": "{{env `GOOGLE_APPLICATION_CREDENTIALS`}}",
+      "project_id": "{{env `PROJECT_ID`}}",
+      "disk_size": "{{env `DISK_SIZE`}}",
+      "image_name": "{{env `IMAGE_NAME`}}",
+      "machine_type": "{{env `MACHINE_TYPE`}}",
+      "zone": "{{env `ZONE`}}"
+  },
   "builders": [
     {
       "type": "googlecompute",
-      "account_file": "{{env `GOOGLE_APPLICATION_CREDENTIALS`}}",
-      "project_id": "kubevirt-button",
+      "account_file": "{{user `account_file`}}",
+      "project_id": "{{user `project_id`}}",
       "source_image_family": "centos-7",
-      "disk_size": 30,
+      "disk_size": "{{user `disk_size`}}",
       "image_description": "Kubevirt button",
-      "image_name": "{{env `IMAGE_NAME`}}",
+      "image_name": "{{user `image_name`}}",
       "instance_name": "kubevirt",
-      "machine_type": "{{env `MACHINE_TYPE`}}",
+      "machine_type": "{{user `machine_type`}}",
       "ssh_username": "centos",
-      "zone": "{{env `ZONE`}}",
+      "zone": "{{user `zone`}}",
       "image_licenses": ["projects/vm-options/global/licenses/enable-vmx"]
     }
   ],
