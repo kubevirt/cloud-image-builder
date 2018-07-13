@@ -78,7 +78,7 @@
       command: kubectl apply -f /home/centos/tests/storage-setup.yaml
 
     - name: create cdi provisioner
-      command: kubectl apply -f /home/centos/tests/cdi-setup.yaml
+      command: kubectl apply -f /home/centos/tests/cdi-controller-deployment.yaml
 
     - name: wait for cdi-deployment pod to become Running
       shell: kubectl get pods | grep cdi-deployment
@@ -87,7 +87,7 @@
       retries: 30
       delay: 10
 
-    - name: deploy vm
+    - name: deploy pvc
       command: kubectl apply -f /home/centos/tests/cirros-pvc.yaml
 
     - name: wait for cirros-pvc to become Bound
@@ -97,11 +97,14 @@
       retries: 12
       delay: 5
 
-    - name: deploy vm
-      command: kubectl apply -f /home/centos/tests/cirros-vm.yaml
+    - name: allow vm emulation
+      command: kubectl apply -f /home/centos/tests/emulation-configmap.yaml
+      
+    - name: deploy cirros vmi
+      command: kubectl apply -f /home/centos/tests/cirros-vmi.yaml
 
     - name: wait for cirros vm to be Running
-      shell: kubectl describe vm cirros-vm | grep Phase
+      shell: kubectl describe vmi cirros-vm | grep Phase
       register: cirros_vm_status
       until: cirros_vm_status.stdout.find("Running") != -1
       retries: 30
