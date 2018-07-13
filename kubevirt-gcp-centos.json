@@ -73,5 +73,12 @@
       "type": "shell",
       "inline": "sudo yum update -y"
     }
+  ],
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "packer-build-manifest.json",
+      "strip_path": true
+    }
   ]
 }
