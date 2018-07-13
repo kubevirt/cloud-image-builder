@@ -1,0 +1,157 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    aws_key_name: "{{ lookup('env', 'AWS_KEY_NAME') }}"
+    aws_security_group: "{{ lookup('env', 'AWS_SECURITY_GROUP') }}"
+    aws_instance_type: "{{ lookup('env', 'AWS_TEST_INSTANCE_TYPE') }}"
+    aws_ami: "{{ lookup('env', 'AWS_TEST_AMI') }}"
+    aws_instance_name: "{{ lookup('env', 'AWS_INSTANCE_NAME') }}"
+    aws_region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
+    packer: "{{ lookup('env', 'PACKER') }}"
+    packer_build_template: "{{ lookup('env', 'PACKER_BUILD_TEMPLATE') }}"
+  tasks:
+    - git:
+        repo: 'https://github.com/kubevirt/kubevirt-ansible/'
+        dest: image-files/kubevirt-ansible
+        update: no
+    
+    - name: download virtctl
+      command: "curl -L -o image-files/virtctl https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64"
+
+    - name: copy localhost version of kubernetes provisioner
+      command: > 
+        cp image-files/cluster-localhost.yml 
+        image-files/kubevirt-ansible/playbooks/cluster/kubernetes
+        
+    - name: build image
+      command: "{{ packer }} build --force {{ packer_build_template }}"
+      register: build_image_status
+
+    - name: read build artifact
+      include_vars: 
+        file: packer-build-manifest.json 
+        name: build_artifact
+      
+    - name: print ami_id
+      set_fact: region_ami_ids={{ build_artifact['builds'][0].artifact_id }}
+      
+    - name: print
+      debug: var=region_ami_ids
+      
+    - name: set region and ami_id
+      set_fact: aws_region={{ region_ami_ids.split(':')[0] }}
+      set_fact: aws_ami={{ region_ami_ids.split(':')[1] }}
+
+# ami_id = region_ami_ids.split(':')[1]
+
+    - name: Provision the test instance
+      ec2:
+         assign_public_ip: yes
+         key_name: "{{ aws_key_name }}"
+         group: "{{ aws_security_group }}"
+         instance_type: "{{ aws_instance_type }}"
+         image: "{{ aws_ami }}"
+         wait: true
+         exact_count: 1
+         count_tag:
+            Name: "{{ aws_instance_name }}"
+         instance_tags:
+            Name: "{{ aws_instance_name }}"
+         region: "{{ aws_region }}"
+         volumes:
+           - device_name: /dev/sda1
+             volume_type: gp2
+             volume_size: 29
+             delete_on_termination: true
+         vpc_subnet_id: "{{ aws_subnet_id }}"
+      register: ec2
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.public_dns_name }}"
+        groupname: launched
+      with_items: "{{ ec2.instances }}"
+
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ item.public_dns_name }}"
+        port: 22
+        delay: 60
+        timeout: 600
+        state: started
+      with_items: "{{ ec2.instances }}"
+
+    - name: Make sure the known hosts file exists
+      file: "path={{ ssh_known_hosts_file }} state=touch"
+
+    - name: Check host name availability
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ item.public_dns_name }}"
+      with_items: "{{ ec2.instances }}"
+      register: z_ssh_known_host_results
+      ignore_errors: yes
+
+    - name: Scan the public key
+      shell: "{{ ssh_known_hosts_command}} {{ item.item.public_dns_name }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ z_ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+- name: Run tests on instance
+  hosts: launched
+  user: centos
+  become: True
+  gather_facts: True
+  tasks: 
+    - name: copy yaml files
+      copy:
+        src: ./tests/
+        dest: /home/centos/tests/
+        owner: centos
+        group: centos
+
+    - name: create hostpath storage class
+      command: kubectl apply -f /home/centos/tests/storage-setup.yaml
+
+    - name: create cdi provisioner
+      command: kubectl apply -f /home/centos/tests/cdi-controller-deployment.yaml
+
+    - name: wait for cdi-deployment pod to become Running
+      shell: kubectl get pods | grep cdi-deployment
+      register: cdi_deployment_status
+      until: cdi_deployment_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+    - name: deploy vm
+      command: kubectl apply -f /home/centos/tests/cirros-pvc.yaml
+
+    - name: wait for cirros-pvc to become Bound
+      shell: kubectl get pvc | grep cirros-pvc
+      register: cirros_pvc_status
+      until: cirros_pvc_status.stdout.find("Bound") != -1
+      retries: 12
+      delay: 5
+
+    - name: allow software emulation for AWS non-baremetal instances
+      command: kubectl apply -f /home/centos/tests/emulation-configmap.yaml
+
+    - name: deploy vm
+      command: kubectl apply -f /home/centos/tests/cirros-vmi.yaml
+
+    - name: wait for cirros vm to be Running
+      shell: kubectl describe vmi cirros-vm | grep Phase
+      register: cirros_vm_status
+      until: cirros_vm_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+- name: Terminate instances
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Terminate instances that were previously launched
+      ec2:
+        state: 'absent'
+        instance_ids: "{{ ec2.instance_ids }}"
