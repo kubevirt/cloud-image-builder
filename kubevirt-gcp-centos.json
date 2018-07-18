@@ -5,7 +5,8 @@
       "disk_size": "{{env `DISK_SIZE`}}",
       "image_name": "{{env `IMAGE_NAME`}}",
       "machine_type": "{{env `MACHINE_TYPE`}}",
-      "zone": "{{env `ZONE`}}"
+      "zone": "{{env `ZONE`}}",
+      "kubevirt_version": "{{env `KUBEVIRT_VERSION`}}"
   },
   "builders": [
     {
@@ -14,13 +15,14 @@
       "project_id": "{{user `project_id`}}",
       "source_image_family": "centos-7",
       "disk_size": "{{user `disk_size`}}",
-      "image_description": "Kubevirt button",
+      "image_description": "Kubevirt button based on {{user `kubevirt_version`}}",
       "image_name": "{{user `image_name`}}",
       "instance_name": "kubevirt",
       "machine_type": "{{user `machine_type`}}",
       "ssh_username": "centos",
       "zone": "{{user `zone`}}",
-      "image_licenses": ["projects/vm-options/global/licenses/enable-vmx"]
+      "image_licenses": ["projects/vm-options/global/licenses/enable-vmx"],
+      "tags": ["packer"]
     }
   ],
   "provisioners": [
