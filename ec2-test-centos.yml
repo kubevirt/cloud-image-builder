@@ -10,6 +10,28 @@
     aws_region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
   tasks:
+    - name: stop existing aws instance
+      ec2_instance:
+        key_name: "{{ aws_key_name }}"
+        vpc_subnet_id: "{{ aws_subnet_id }}"
+        name: "{{ aws_instance_name }}"
+        state: absent
+
+    - name: read build artifact
+      include_vars:
+        file: packer-build-manifest.json
+        name: build_artifact
+
+    - name: print ami_id
+      set_fact: region_ami_ids={{ build_artifact['builds'][0].artifact_id }}
+
+    - name: print
+      debug: var=region_ami_ids
+
+    - name: set region and ami_id
+      set_fact: aws_region={{ region_ami_ids.split(':')[0] }}
+      set_fact: aws_ami={{ region_ami_ids.split(':')[1] }}
+
     - name: Provision the test instance
       ec2:
          assign_public_ip: yes
@@ -109,3 +131,12 @@
       until: cirros_vm_status.stdout.find("Running") != -1
       retries: 30
       delay: 10
+
+- name: Terminate instances
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Terminate instances that were previously launched
+      ec2:
+        state: 'absent'
+        instance_ids: "{{ ec2.instance_ids }}"
