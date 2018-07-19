@@ -16,42 +16,46 @@ pipeline {
             }
         }
 
-        stage('centos-aws') {
-            when {
-                anyOf {
-                    changeset glob: "*ami*"
-                    changeset glob: "*aws*"
-                    changeset glob: "*ec2*"
-                }
-            }
-
-            steps {
-                script {
-                    def imageParams = readProperties file: 'environment.aws'
-
-                    if (env.CHANGE_ID) {
-                        imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-PR-${env.CHANGE_ID}"
-                        // used to decorate the build
-                        imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
-                        imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
-                    } else {
-                        imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
+        stage('run-tests') {
+            parallel {
+                stage('centos-aws') {
+                    when {
+                        anyOf {
+                            changeset glob: "*ami*"
+                            changeset glob: "*aws*"
+                            changeset glob: "*ec2*"
+                        }
                     }
 
-                    scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
+                    steps {
+                        script {
+                            def imageParams = readProperties file: 'environment.aws'
+
+                            if (env.CHANGE_ID) {
+                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-PR-${env.CHANGE_ID}"
+                                // used to decorate the build
+                                imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                                imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            } else {
+                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
+                            }
+
+                            scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
+                        }
+                    }
                 }
-            }
-        }
 
-        stage('centos-gcp') {
-            when {
-                changeset 'centos-gcp/**'
-            }
+                stage('centos-gcp') {
+                    when {
+                        changeset 'centos-gcp/**'
+                    }
 
-            steps {
-                script {
-                    def imageParams = readProperties file: 'centos-gcp/environment'
-                    scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
+                    steps {
+                        script {
+                            def imageParams = readProperties file: 'centos-gcp/environment'
+                            scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
+                        }
+                    }
                 }
             }
         }
