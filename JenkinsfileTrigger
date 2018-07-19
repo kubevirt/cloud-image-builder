@@ -34,19 +34,11 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
+                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            imageParams['TAG_NAME'] = env.TAG_NAME
 
-                            if (env.CHANGE_ID) {
-                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-PR-${env.CHANGE_ID}"
-                                // used to decorate the build
-                                imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
-                                imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
-                            } else {
-                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
-                            }
-
-                            sh 'env'
-
-                            scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
+                            scheduleBuild(buildName: 'centos-aws-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
@@ -61,7 +53,7 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.gcp'
-                            scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
+                            scheduleBuild(buildName: 'centos-gcp-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
