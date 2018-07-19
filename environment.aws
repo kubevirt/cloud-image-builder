@@ -1,5 +1,5 @@
 PACKER_BUILD_TEMPLATE=kubevirt-ami-centos.json
-AWS_SOURCE_AMI=ami-ec377793
+AWS_SOURCE_AMI=ami-9887c6e7
 PLAYBOOK=ec2-test-centos.yml
 AWS_INSTANCE_NAME=kubevirt-centos
 AWS_BUILD_INSTANCE_TYPE=t2.medium
