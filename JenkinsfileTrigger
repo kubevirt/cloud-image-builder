@@ -47,12 +47,14 @@ pipeline {
 
                 stage('centos-gcp') {
                     when {
-                        changeset 'centos-gcp/**'
+                        anyOf {
+                            changeset glob: "*gcp*"
+                        }
                     }
 
                     steps {
                         script {
-                            def imageParams = readProperties file: 'centos-gcp/environment'
+                            def imageParams = readProperties file: 'environment.gcp'
                             scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
                         }
                     }
