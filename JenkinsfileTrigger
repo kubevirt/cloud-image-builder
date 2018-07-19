@@ -1,0 +1,56 @@
+#!/usr/bin/env groovy
+
+
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    stages {
+
+        stage('decorate-build') {
+            steps {
+                script {
+                    decoratePRBuild()()
+                }
+            }
+        }
+
+        stage('centos-aws') {
+            when {
+                anyOf {
+                    changeset glob: "*ami*"
+                    changeset glob: "*aws*"
+                    changeset glob: "*ec2*"
+                }
+            }
+
+            steps {
+                script {
+                    def imageParams = readProperties file: 'environment.aws'
+
+                    if (env.CHANGE_ID) {
+                        imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-PR-${env.CHANGE_ID}"
+                    } else {
+                        imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
+                    }
+
+                    scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
+                }
+            }
+        }
+
+        stage('centos-gcp') {
+            when {
+                changeset 'centos-gcp/**'
+            }
+
+            steps {
+                script {
+                    def imageParams = readProperties file: 'centos-gcp/environment'
+                    scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
+                }
+            }
+        }
+    }
+}
