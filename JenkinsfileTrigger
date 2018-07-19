@@ -31,6 +31,9 @@ pipeline {
 
                     if (env.CHANGE_ID) {
                         imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-PR-${env.CHANGE_ID}"
+                        // used to decorate the build
+                        imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                        imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
                     } else {
                         imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
                     }
