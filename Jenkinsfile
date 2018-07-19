@@ -85,3 +85,4 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
         }
     }
 }
+
