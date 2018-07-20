@@ -1,0 +1,14 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    aws_key_name: "{{ lookup('env', 'AWS_KEY_NAME') }}"
+    aws_instance_name: "{{ lookup('env', 'AWS_INSTANCE_NAME') }}"
+    aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
+  tasks:
+    - name: stop test ec2 instance
+      ec2_instance:
+        key_name: "{{ aws_key_name }}"
+        vpc_subnet_id: "{{ aws_subnet_id }}"
+        name: "{{ aws_instance_name }}"
+        state: absent
