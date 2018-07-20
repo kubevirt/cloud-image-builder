@@ -4,4 +4,4 @@ metadata:
   name: kubevirt-config
   namespace: kube-system
 data:
-  debug.allowEmulation: "true"
+  debug.useEmulation: "true"
