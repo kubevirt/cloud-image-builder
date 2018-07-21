@@ -18,7 +18,7 @@
     "instance_type": "{{user `instance_type`}}",
     "ssh_username": "centos",
     "ami_name": "centos-kubevirt-{{timestamp}}",
-    "image_description": "Kubevirt button based on {{user `kubevirt_version`}}",
+    "ami_description": "Kubevirt button based on {{user `kubevirt_version`}}",
     "subnet_id": "{{user `subnet_id`}}",
     "associate_public_ip_address": "true",
     "security_group_id": "{{user `security_group`}}"
