@@ -7,16 +7,12 @@ pipeline {
     }
 
     stages {
-
-        stage('decorate-build') {
+        stage('run-tests') {
             steps {
                 script {
                     decoratePRBuild()()
                 }
             }
-        }
-
-        stage('run-tests') {
             parallel {
                 stage('centos-aws') {
                     when {
