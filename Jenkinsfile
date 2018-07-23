@@ -33,10 +33,8 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
                     """
 
                 checkout scm
-
-                withCredentials(credentials) {
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params)
-                }
+                executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                        credentials: credentials)
 
             }
 
@@ -46,11 +44,9 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
                     ansible-playbook -vvv --private-key \${AWS_KEY_LOCATION} \${PLAYBOOK}
                     """
 
-                withCredentials(credentials) {
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                            loadProps: ['build-image'])
 
-                }
+                executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                        loadProps: ['build-image'], credentials: credentials)
             }
 
         } catch(e) {
@@ -62,10 +58,8 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
                 def cmd = """
                     ansible-playbook -vvv --private-key \${AWS_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
                     """
-                withCredentials(credentials) {
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                            loadProps: ['build-image'])
-                }
+                executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                        loadProps: ['build-image'], credentials: credentials)
             }
         }
     }
