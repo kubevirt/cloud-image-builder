@@ -20,10 +20,8 @@ pipeline {
             parallel {
                 stage('centos-aws') {
                     when {
-                        anyOf {
-                            changeset glob: "*ami*"
-                            changeset glob: "*aws*"
-                            changeset glob: "*ec2*"
+                        expression {
+                            sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*ami*|*aws*|*ec2*" > /dev/null') == 0
                         }
                     }
 
@@ -47,8 +45,8 @@ pipeline {
 
                 stage('centos-gcp') {
                     when {
-                        anyOf {
-                            changeset glob: "*gcp*"
+                        expression {
+                            sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*gcp*" > /dev/null') == 0
                         }
                     }
 
