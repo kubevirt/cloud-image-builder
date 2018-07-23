@@ -23,34 +23,50 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
 
     ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives) {
 
-        stage('build-image') {
-            handlePipelineStep {
-                def cmd = """
+        try {
+
+            stage('build-image') {
+                handlePipelineStep {
+                    def cmd = """
                   curl -L -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
                   unzip /tmp/packer.zip -d .
                   sh build.sh
                   """
 
-                checkout scm
+                    checkout scm
 
-                withCredentials(credentials) {
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params)
+                    withCredentials(credentials) {
+                        executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params)
+                    }
                 }
             }
-        }
 
-        stage('test-image') {
-            handlePipelineStep {
-                def cmd = """
+            stage('test-image') {
+                handlePipelineStep {
+                    def cmd = """
                   mkdir -p ~/.ssh
                   ansible-playbook -vvv --private-key \${AWS_KEY_LOCATION} \${PLAYBOOK}
                   """
 
-                withCredentials(credentials) {
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                                       loadProps: ['build-image'])
+                    withCredentials(credentials) {
+                        executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                                loadProps: ['build-image'])
 
+                    }
                 }
+            }
+
+        } catch(e) {
+            echo e.getMessage()
+            throw e
+
+        } finally {
+            def cmd = """
+                ansible-playbook -vvv --private-key \${AWS_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
+                """
+            withCredentials(credentials) {
+                executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                        loadProps: ['build-image'])
             }
         }
     }
