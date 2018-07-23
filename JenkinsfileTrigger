@@ -7,12 +7,17 @@ pipeline {
     }
 
     stages {
-        stage('run-tests') {
+
+        // Decorate the build with the branch, change owner and build number
+        stage('decorate-build') {
             steps {
                 script {
                     decoratePRBuild()()
                 }
             }
+        }
+
+        stage('run-tests') {
             parallel {
                 stage('centos-aws') {
                     when {
