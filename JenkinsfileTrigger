@@ -24,9 +24,9 @@ pipeline {
                         expression {
                             anyOf {
                                 sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*ami*|*aws*|*ec2*" > /dev/null') == 0
-                                changeset glob: "aws"
-                                changeset glob: "ec2"
-                                changeset glob: "ami"
+                                changeset glob: "*aws*"
+                                changeset glob: "*ec2*"
+                                changeset glob: "*ami*"
                             }
                         }
                     }
