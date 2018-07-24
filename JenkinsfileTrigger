@@ -44,6 +44,8 @@ pipeline {
                                 imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
                             }
 
+                            sh 'env'
+
                             scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
                         }
                     }
