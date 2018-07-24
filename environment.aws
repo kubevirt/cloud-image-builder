@@ -7,3 +7,4 @@ AWS_BUILD_INSTANCE_TYPE=t2.medium
 AWS_REGION=us-east-1
 PACKER=./packer
 BUILD_SCRIPT=build.sh
+test=param1
