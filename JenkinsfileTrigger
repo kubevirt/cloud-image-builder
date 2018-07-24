@@ -22,7 +22,12 @@ pipeline {
                 stage('centos-aws') {
                     when {
                         expression {
-                            sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*ami*|*aws*|*ec2*" > /dev/null') == 0
+                            anyOf {
+                                sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*ami*|*aws*|*ec2*" > /dev/null') == 0
+                                changeset glob: "*aws*"
+                                changeset glob: "*ec2*"
+                                changeset glob: "*ami*"
+                            }
                         }
                     }
 
@@ -35,6 +40,9 @@ pipeline {
                                 // used to decorate the build
                                 imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
                                 imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            } else if (env.TAG_NAME) {
+                                imageParams['TAG_NAME'] = env.TAG_NAME
+                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-${env.TAG_NAME}"
                             } else {
                                 imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
                             }

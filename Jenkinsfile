@@ -13,6 +13,8 @@ def credentials = [
         sshUserPrivateKey(credentialsId: 'ab369812-7016-40b4-8747-cb36d0e27f33', keyFileVariable: 'SSH_KEY_LOCATION')
 ]
 
+
+
 def archives = {
     step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
           artifacts: 'packer-build-manifest.json', fingerprint: true])
@@ -49,6 +51,17 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
 
                 executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                         loadProps: ['build-image'], credentials: credentials)
+            }
+
+            if (params['TAG_NAME']) {
+                stage('deploy-image') {
+                    def cmd = """
+                    ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
+                    """
+
+                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                            loadProps: ['build-image'], credentials: credentials)
+                }
             }
 
         } catch(e) {
