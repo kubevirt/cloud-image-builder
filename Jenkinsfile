@@ -20,7 +20,13 @@ def archives = {
           artifacts: 'packer-build-manifest.json', fingerprint: true])
 }
 
-buildDecorator = decoratePRBuild(change_author: params['CHANGE_AUTHOR'], change_branch: params['CHANGE_BRANCH'])
+// decorate build with PR or TAG information
+if (params['TAG_NAME']) {
+    buildDecorator = decoratePRBuild(tag_name: params['TAG_NAME'])
+
+} else {
+    buildDecorator = decoratePRBuild(change_author: params['CHANGE_AUTHOR'], change_branch: params['CHANGE_BRANCH'])
+}
 
 deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
                         docker_repo_url: '172.30.254.79:5000', jenkins_slave_image: 'jenkins-contra-slave:latest') {
