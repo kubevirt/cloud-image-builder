@@ -34,3 +34,25 @@ You can inspect the EC2 instance and perform additional tests by logging in usin
 ```bash
 ssh -i <your-aws-private-key> centos@<ec2_instance_public_ip_or_dns_name>
 ```
+## Pipeline
+[Jenkins Pipeline](https://jenkins-kubevirt.apps.ci.centos.org/)
+
+The pipeline consists of a multibranch pipeline job named [cloud-image-builder](https://jenkins-kubevirt.apps.ci.centos.org/job/cloud-image-builder/)
+that listens for pull requests to be opened on the repository. If a pull request contains changes to an AWS related file, the [centos-aws-image-build](https://jenkins-kubevirt.apps.ci.centos.org/job/centos-aws-image-build/)
+job is started. If a pull request contains changes to a GCP related file, the [centos-gcp-image-build](https://jenkins-kubevirt.apps.ci.centos.org/job/centos-gcp-image-build/)
+job is started.
+
+### cloud-image-builder
+The cloud-image-builder job consists of three stages. The first stage called run-tests serves as a wrapper to
+run the next two stages in parallel. The wrapped stages are centos-aws and centos-gcp. centos-aws listens for changes
+to any file containing ec2, aws or ami. If it detects a change, it first sets variables related to the change author, change branch
+and aws instance name. It then reads the file environment.aws and passes the variables contained in that file to the 
+centos-aws-image-build job.
+
+### centos-aws
+The centos-aws job starts off by initializing a pod in Openshift with one container called ansible-executor. Then it starts 
+it's first of three stages. The first stage builds an AMI using packer and then records the ami instance id.
+The next stage runs tests against the image using ansible. Once the job completes successfully or in error the third stage 
+is run that cleans up the AMI.
+
+
