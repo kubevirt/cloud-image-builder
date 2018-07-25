@@ -55,4 +55,15 @@ it's first of three stages. The first stage builds an AMI using packer and then 
 The next stage runs tests against the image using ansible. Once the job completes successfully or in error the third stage 
 is run that cleans up the AMI.
 
+### Pipeline metrics
+Basic metrics for each jenkins job can be viewed here. [Metrics](http://grafana-continuous-infra.apps.ci.centos.org/d/adsyE4Kmk/kubevirt-image-builder)
 
+### Secrets management
+Secrets are managed in OpenShift and sync to Jenkins using the [OpenShift Sync Plugin](https://github.com/openshift/jenkins-sync-plugin)
+#### Examples:
+```bash
+# Create the secret
+oc create secret generic mycert --from-file=certificate=mycert.p12 --from-literal=password=password
+# Add label to mark that it should be synced.
+oc label secret mysecretfile credential.sync.jenkins.openshift.io=true
+```
