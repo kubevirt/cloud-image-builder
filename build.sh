@@ -1,5 +1,9 @@
 cd image-files
-git clone https://github.com/kubevirt/kubevirt-ansible/
+if [ ! -d kubevirt-ansible ]; then
+  git clone https://github.com/kubevirt/kubevirt-ansible
+  sed -i 's@apply -f /tmp/kubevirt.yaml@apply -f /tmp/kubevirt.yaml --validate=false@' kubevirt-ansible/roles/kubevirt/tasks/provision.yml
+  sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
+fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
 [ -f virtctl ] || curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/virtctl-v$KUBEVIRT_VERSION-linux-amd64
