@@ -17,6 +17,18 @@ Why is there a first-boot.sh script and a kubevirt-installer.service file? When 
 Once the build finishes, note the AMI id. We will use it in the verification step.
 In the case of Gcp, you can set the image name in the environment file
 
+## Making Gcp image publicly available
+
+The following command is used to make the constructed image publicly available
+
+```
+PROJECT="cnvlab-209908"
+BUCKET="kubevirt-button"
+IMAGE="kubevirt-button"
+VERSION="v0.7.0"
+gcloud compute images export --destination-uri gs://$BUCKET/$VERSION.tar.gz --image $IMAGE --project $PROJECT
+```
+
 ## Verification
 
 You can use the ec2-test-centos.yml playbook to verify that the AMI we built works correctly. The playbook creates an EC2 instance using a specified AMI, waits for the instance to allow SSH, and then sets up KubeVirt with a storage class, CDI, PVC, and finally starts up a cirros VM and waits for it to be in "Running" state. The storage class, CDI, PVC, and VM definitions are from https://github.com/davidvossel/hostpath-pvc-vm-disks-examples/blob/master/README.md.
