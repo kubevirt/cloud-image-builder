@@ -34,18 +34,9 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
-
-                            if (env.CHANGE_ID) {
-                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-PR-${env.CHANGE_ID}"
-                                // used to decorate the build
-                                imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
-                                imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
-                            } else if (env.TAG_NAME) {
-                                imageParams['TAG_NAME'] = env.TAG_NAME
-                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-${env.TAG_NAME}"
-                            } else {
-                                imageParams['AWS_INSTANCE_NAME'] = "${imageParams['AWS_INSTANCE_NAME']}-branch-${env.BRANCH_NAME}"
-                            }
+                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            imageParams['TAG_NAME'] = env.TAG_NAME
 
                             scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
                         }
