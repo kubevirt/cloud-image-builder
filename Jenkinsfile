@@ -24,8 +24,10 @@ def archives = {
 if (params['TAG_NAME']) {
     buildDecorator = decoratePRBuild(tag_name: params['TAG_NAME'])
 
-} else {
+} else if (params['CHANGE_AUTHOR'] && params['CHANGE_BRANCH']) {
     buildDecorator = decoratePRBuild(change_author: params['CHANGE_AUTHOR'], change_branch: params['CHANGE_BRANCH'])
+} else {
+    buildDecorator = decoratePRBuild()
 }
 
 deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
