@@ -4,7 +4,7 @@
   vars:
     machine_type: "{{ lookup('env', 'MACHINE_TYPE') }}"
     credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
-    project_id: "{{ lookup('env', 'PROJECT') }}"
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     zone: "{{ lookup('env', 'ZONE') }}"
   tasks:
     - name: Provision the test instance
@@ -15,7 +15,7 @@
          image: centos-7
          state: present
          credentials_file: "{{ credentials_file }}"
-         project_id: "{{ project }}"
+         project_id: "{{ project_id }}"
          disk_size: 40
       register: gce
 
