@@ -14,5 +14,5 @@ chmod +x virtctl
 cp cluster-localhost.yml kubevirt-ansible/playbooks/cluster/kubernetes
 cd ..
 
-$PACKER build -machine-readable --force $PACKER_BUILD_TEMPLATE | tee build.log
+$PACKER build -debug -machine-readable --force $PACKER_BUILD_TEMPLATE | tee build.log
 echo "AWS_TEST_AMI=`egrep -m1 -oe 'ami-.{8}' build.log`" >> job.props
