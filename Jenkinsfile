@@ -21,9 +21,6 @@ def archives = {
           artifacts: 'packer-build-manifest.json', fingerprint: true])
 }
 
-print "params tag name"
-print params['TAG_NAME']
-
 // decorate build with PR or TAG information
 if (params['TAG_NAME'] != 'null' ) {
     buildDecorator = decoratePRBuild(tag_name: params['TAG_NAME'])
