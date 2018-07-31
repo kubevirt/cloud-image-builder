@@ -1,9 +1,10 @@
 # Packer build
 #export GOOGLE_APPLICATION_CREDENTIALS=""
-export IMAGE_NAME=kubevirt-button
-export MACHINE_TYPE=custom-2-8192
-export PROJECT_ID="cnvlab-209908"
-export ZONE=us-central1-a
-export DISK_SIZE=30
-export PACKER=`which packer`
-export PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
+IMAGE_NAME=kubevirt-button
+MACHINE_TYPE=custom-2-8192
+PROJECT_ID="cnvlab-209908"
+ZONE=us-central1-a
+DISK_SIZE=30
+PACKER=./packer
+PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
+PLAYBOOK=gcp-test-centos.yml
