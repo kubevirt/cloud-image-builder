@@ -21,10 +21,10 @@ def archives = {
 }
 
 // decorate build with PR or TAG information
-if (params['TAG_NAME']) {
+if (params['TAG_NAME'] != 'null' ) {
     buildDecorator = decoratePRBuild(tag_name: params['TAG_NAME'])
 
-} else if (params['CHANGE_AUTHOR'] && params['CHANGE_BRANCH']) {
+} else if (params['CHANGE_AUTHOR'] != 'null' && params['CHANGE_BRANCH'] != 'null') {
     buildDecorator = decoratePRBuild(change_author: params['CHANGE_AUTHOR'], change_branch: params['CHANGE_BRANCH'])
 } else {
     buildDecorator = decoratePRBuild()
