@@ -2,7 +2,7 @@
 #export GOOGLE_APPLICATION_CREDENTIALS=""
 IMAGE_NAME=kubevirt-button
 MACHINE_TYPE=custom-2-8192
-PROJECT_ID="cnvlab-209908"
+PROJECT_ID=cnvlab-209908
 ZONE=us-central1-a
 DISK_SIZE=30
 PACKER=./packer
