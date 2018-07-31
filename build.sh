@@ -1,3 +1,5 @@
+set -x
+
 cd image-files
 if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
