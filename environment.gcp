@@ -7,3 +7,5 @@ ZONE=us-central1-b
 DISK_SIZE=30
 PACKER=`which packer`
 PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
+PLAYBOOK=gcp-test-centos.yml
+BUILD_SCRIPT=./build.sh
