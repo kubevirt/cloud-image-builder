@@ -34,9 +34,9 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
-                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH ?: false
-                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR ?: false
-                            imageParams['TAG_NAME'] = env.TAG_NAME ?: false
+                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            imageParams['TAG_NAME'] = env.TAG_NAME
 
                             scheduleBuild(buildName: 'centos-aws-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
