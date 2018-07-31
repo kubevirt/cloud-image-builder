@@ -34,11 +34,11 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
-                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH ?: false
-                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR ?: false
-                            imageParams['TAG_NAME'] = env.TAG_NAME ?: false
+                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            imageParams['TAG_NAME'] = env.TAG_NAME
 
-                            scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
+                            scheduleBuild(buildName: 'centos-aws-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
@@ -53,7 +53,7 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.gcp'
-                            scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
+                            scheduleBuild(buildName: 'centos-gcp-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
