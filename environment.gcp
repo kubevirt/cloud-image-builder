@@ -1,10 +1,9 @@
 # Packer build
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/push-button-ci.json"
-export SERVICE_ACCOUNT_EMAIL="push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
-export IMAGE_NAME=kubevirt-button
-export MACHINE_TYPE=custom-2-8192
-export PROJECT_ID="cnvlab-209908"
-export ZONE=us-central1-b
-export DISK_SIZE=30
-export PACKER=`which packer`
-export PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
+SERVICE_ACCOUNT_EMAIL="push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
+IMAGE_NAME=kubevirt-button
+MACHINE_TYPE=custom-2-8192
+PROJECT_ID="cnvlab-209908"
+ZONE=us-central1-b
+DISK_SIZE=30
+PACKER=`which packer`
+PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
