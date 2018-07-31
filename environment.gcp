@@ -2,8 +2,8 @@
 SERVICE_ACCOUNT_EMAIL="push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
 IMAGE_NAME=kubevirt-button
 MACHINE_TYPE=custom-2-8192
-PROJECT_ID="cnvlab-209908"
 ZONE=us-central1-b
+PROJECT_ID=cnvlab-209908
 DISK_SIZE=30
 PACKER=`which packer`
 PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
