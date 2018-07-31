@@ -9,3 +9,4 @@ PACKER=./packer
 PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
 PLAYBOOK=gcp-test-centos.yml
 BUILD_SCRIPT=./build.sh
+test=test1
