@@ -17,7 +17,7 @@
       "disk_size": "{{user `disk_size`}}",
       "image_description": "Kubevirt button based on {{user `kubevirt_version`}}",
       "image_name": "{{user `image_name`}}",
-      "instance_name": "kubevirt",
+      "instance_name": "kubevirt-pipeline",
       "machine_type": "{{user `machine_type`}}",
       "ssh_username": "centos",
       "zone": "{{user `zone`}}",
