@@ -8,7 +8,7 @@
     project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     zone: "{{ lookup('env', 'ZONE') }}"
     service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
-    ssh_public_key: "{{ lookup('env', 'GCP_SSH_PUBLIC_KEY') }}"
+    ssh_public_key: "{{ lookup('file', ('env', 'GCP_SSH_PUBLIC_KEY')) }}"
   tasks:
     - name: Read build artifact
       include_vars:
