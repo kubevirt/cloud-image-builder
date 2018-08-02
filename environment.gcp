@@ -8,5 +8,6 @@ DISK_SIZE=30
 PACKER=./packer
 PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
 PLAYBOOK=gcp-test-centos.yml
+PLAYBOOK_CLEANUP=gcp-test-centos-cleanup.yml
 BUILD_SCRIPT=./build.sh
 test=test1
