@@ -58,6 +58,9 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.gcp'
+                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+                            imageParams['TAG_NAME'] = env.TAG_NAME
                             scheduleBuild(buildName: 'centos-gcp-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
