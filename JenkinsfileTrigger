@@ -1,6 +1,21 @@
 #!/usr/bin/env groovy
 
 
+
+def setCustomParams(String cloud) {
+    def imageParams = [:]
+    imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+    imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+    imageParams['TAG_NAME'] = env.TAG_NAME
+
+    if (cloud == 'gcp') {
+        imageParams['ssh_private_key'] = 'kubevirt-gcp-ssh-private-key'
+    } else {
+        imageParams['ssh_private_key'] = 'kubevirt-aws-ssh-private-key'
+    }
+
+    return imageParams
+}
 pipeline {
     agent {
         label 'master'
@@ -34,10 +49,7 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
-                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
-                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
-                            imageParams['TAG_NAME'] = env.TAG_NAME
-
+                            imageParams << setCustomParams()
                             scheduleBuild(buildName: 'centos-aws-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
@@ -58,9 +70,7 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.gcp'
-                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
-                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
-                            imageParams['TAG_NAME'] = env.TAG_NAME
+                            imageParams << setCustomParams()
                             scheduleBuild(buildName: 'centos-gcp-image-build', stringParams: imageParams, triggerRetryCount: 1)
                         }
                     }
