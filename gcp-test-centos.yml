@@ -2,28 +2,41 @@
   connection: local
   gather_facts: False
   vars:
+    user: "centos"
     machine_type: "{{ lookup('env', 'MACHINE_TYPE') }}"
     credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
-    project_id: "{{ lookup('env', 'PROJECT') }}"
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     zone: "{{ lookup('env', 'ZONE') }}"
+    service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
+    ssh_public_key: "{{lookup('file', '~/.ssh/id_rsa.pub') }}"
   tasks:
+    - name: Read build artifact
+      include_vars:
+        file: packer-build-manifest.json
+        name: build_artifact
+
+    - name: Set Push Button Image Name
+      set_fact: image={{ build_artifact['builds'][0].artifact_id }}
+
     - name: Provision the test instance
       gce:
          instance_names: my-test-instance1
          zone: "{{ zone }}"
          machine_type: "{{ machine_type }}"
-         image: centos-7
+         image: "{{ image }}"
          state: present
+         service_account_email: "{{ service_account_email }}"
          credentials_file: "{{ credentials_file }}"
-         project_id: "{{ project }}"
+         project_id: "{{ project_id }}"
          disk_size: 40
+         metadata: '{"ssh-keys": "{{ user }}: {{ ssh_public_key }}"}'
       register: gce
 
     - name: Add new instance to host group
       add_host:
         hostname: "{{ item.public_ip }}"
         groupname: launched
-      with_items: "{{ gce.instances }}"
+      with_items: "{{ gce.instance_data }}"
 
     - name: Wait for SSH to come up
       wait_for:
@@ -32,14 +45,14 @@
         delay: 60
         timeout: 600
         state: started
-      with_items: "{{ gce.instances }}"
+      with_items: "{{ gce.instance_data }}"
 
     - name: Make sure the known hosts file exists
       file: "path={{ ssh_known_hosts_file }} state=touch"
 
     - name: Check host name availability
       shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ item.public_ip }}"
-      with_items: "{{ gce.instances }}"
+      with_items: "{{ gce.instance_data }}"
       register: z_ssh_known_host_results
       ignore_errors: yes
 
@@ -48,48 +61,4 @@
       with_items: "{{ z_ssh_known_host_results.results }}"
       when: item.stdout == ""
 
-- name: Run tests on instance
-  hosts: launched
-  user: centos
-  become: True
-  gather_facts: True
-  tasks: 
-    - name: copy yaml files
-      copy:
-        src: ./tests/
-        dest: /home/centos/tests/
-        owner: centos
-        group: centos
-
-    - name: create hostpath storage class
-      command: kubectl apply -f /home/centos/tests/storage-setup.yaml
-
-    - name: create cdi provisioner
-      command: kubectl apply -f /home/centos/tests/cdi-setup.yaml
-
-    - name: wait for cdi-deployment pod to become Running
-      shell: kubectl get pods | grep cdi-deployment
-      register: cdi_deployment_status
-      until: cdi_deployment_status.stdout.find("Running") != -1
-      retries: 30
-      delay: 10
-
-    - name: deploy vm
-      command: kubectl apply -f /home/centos/tests/cirros-pvc.yaml
-
-    - name: wait for cirros-pvc to become Bound
-      shell: kubectl get pvc | grep cirros-pvc
-      register: cirros_pvc_status
-      until: cirros_pvc_status.stdout.find("Bound") != -1
-      retries: 12
-      delay: 5
-
-    - name: deploy vm
-      command: kubectl apply -f /home/centos/tests/cirros-vm.yaml
-
-    - name: wait for cirros vm to be Running
-      shell: kubectl describe vm cirros-vm | grep Phase
-      register: cirros_vm_status
-      until: cirros_vm_status.stdout.find("Running") != -1
-      retries: 30
-      delay: 10
+- include: tests.yml
