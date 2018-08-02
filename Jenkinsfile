@@ -12,7 +12,7 @@ def credentials = [
         string(credentialsId: 'kubevirt-aws-key-name', variable: 'AWS_KEY_NAME'),
         sshUserPrivateKey(credentialsId: 'kubevirt-gcp-ssh-private-key', keyFileVariable: 'SSH_KEY_LOCATION'),
         file(credentialsId: 'kubevirt-gcp-credentials-file', variable: 'GOOGLE_APPLICATION_CREDENTIALS'),
-        file(credentialsId: 'kubevirt-gcp-ssh-public-key', variable: 'GCP_SSH_PUBLIC_KEY')
+        string(credentialsId: 'kubevirt-gcp-ssh-public-key', variable: 'GCP_SSH_PUBLIC_KEY')
 ]
 
 
