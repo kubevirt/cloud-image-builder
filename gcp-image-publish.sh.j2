@@ -1,0 +1,8 @@
+#!/bin/bash
+sudo mkdir /mnt/tmp
+sudo mkfs.ext4 -F /dev/sdc
+sudo mount -o discard,defaults /dev/sdc /mnt/tmp
+sudo dd if=/dev/sdb1 of=/mnt/tmp/disk.raw bs=4096
+cd /mnt/tmp
+sudo tar czvf {{ version }}.tar.gz disk.raw
+gsutil cp /mnt/tmp/{{ version }}.tar.gz gs://{{ bucket }}
