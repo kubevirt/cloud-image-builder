@@ -1,0 +1,107 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    user: "centos"
+    machine_type: "{{ lookup('env', 'MACHINE_TYPE') }}"
+    credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    zone: "{{ lookup('env', 'ZONE') }}"
+    service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
+    ssh_public_key: "{{lookup('file', '~/.ssh/id_rsa.pub') }}"
+  tasks:
+    - name: Read build artifact
+      include_vars:
+        file: packer-build-manifest.json
+        name: build_artifact
+
+    - name: Set Push Button Image Name
+      set_fact: image={{ build_artifact['builds'][0].artifact_id }}
+
+    - name: Provision the uploader instance
+      gce:
+         instance_names: uploader-instance
+         zone: "{{ zone }}"
+         machine_type: "{{ machine_type }}"
+         image: centos-7
+        # image: "{{ image }}"
+         state: present
+         service_account_email: "{{ service_account_email }}"
+         credentials_file: "{{ credentials_file }}"
+         project_id: "{{ project_id }}"
+         disk_size: 100
+         persistent_boot_disk: True
+         service_account_permissions:
+         - storage-rw
+         metadata: '{"ssh-keys": "{{ user }}: {{ ssh_public_key }}"}'
+      register: gce
+
+    -  name: Add kubevirt-button disk
+       gce_pd:
+        instance_name: uploader-instance
+        image: "{{ image }}"
+        name: image-disk
+        size_gb: 30
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+
+    -  name: Add Temporary disk for uploading
+       gce_pd:
+        instance_name: uploader-instance
+        size_gb: 100
+        name: temporary-disk
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        mode: READ_WRITE
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: launched
+      with_items: "{{ gce.instance_data }}"
+
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ item.public_ip }}"
+        port: 22
+        delay: 60
+        timeout: 600
+        state: started
+      with_items: "{{ gce.instance_data }}"
+
+    - name: Make sure the known hosts file exists
+      file: "path={{ ssh_known_hosts_file }} state=touch"
+
+    - name: Check host name availability
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ item.public_ip }}"
+      with_items: "{{ gce.instance_data }}"
+      register: z_ssh_known_host_results
+      ignore_errors: yes
+
+    - name: Scan the public key
+      shell: "{{ ssh_known_hosts_command}} {{ item.item.public_ip }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ z_ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+- name: Prepare and publish image
+  hosts: launched
+  vars:
+    user: "centos"
+    bucket: "kubevirt-button"
+    version: "v0.7.1"
+  user: centos
+  become: True
+  gather_facts: True
+  tasks:
+    - name: Copy Publisher Script
+      template:
+        src: gcp-image-publish.sh.j2
+        dest: "/home/{{ user }}/gcp-image-publish.sh"
+        owner: "{{ user }}"
+        group: centos
+        mode: 0700
+
+    - name: Launch Publisher Script
+      command: "/home/{{ user }}/gcp-image-publish.sh"
