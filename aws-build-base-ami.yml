@@ -10,7 +10,6 @@
     aws_region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
   tasks:
-
     - name: Terminate workspace instance that was previously launched
       ec2_instance:
         key_name: "{{ aws_key_name }}"
@@ -115,7 +114,7 @@
         instance: "{{ workspace_ami['instance_ids'][0] }}"
         volume_size: 8
         volume_type: gp2
-        device_name: /dev/xvdg
+        device_name: /dev/sdg
       register: new_volume
 
     - name: debug marketplace_voume
@@ -171,17 +170,16 @@
       command: sudo mkfs -t xfs /dev/xvdg
 
     - name: copy device
-      command: sudo dd bs=65536 status=progress if=/dev/xvdf of=/dev/xvdg
+      command: sudo dd conv=sync,noerror bs=64K status=progress if=/dev/xvdf of=/dev/xvdg
 
     - name: sync
       command: sudo sync
 
-#    - name: check device
-#      command: sudo xfs_repair -v /dev/xvdg
-
 - hosts: localhost
   connection: local
   gather_facts: True
+  vars:
+    aws_ami_name: "{{ lookup('env', 'AWS_AMI_NAME') | default('kubevirt-centos-base-ami-' + ansible_date_time.iso8601_basic_short, true) }}" 
   tasks:
     - name: stop workspace instance
       ec2:
@@ -224,9 +222,9 @@
       ec2_ami:
         instance_id: "{{ workspace_ami['instance_ids'][0] }}"
         wait: yes
-        name: kubevirt-centos-base-ami-3
+        name: "{{ aws_ami_name }}"
         tags:
-          Name: kubevirt-centos-base-ami-3
+          Name: "{{ aws_ami_name }}"
 
     - name: detach new volume from workspace instance
       ec2_vol:
