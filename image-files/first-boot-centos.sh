@@ -18,5 +18,13 @@ sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local
 # deploy kubevirt
 sudo ansible-playbook playbooks/kubevirt.yml -e@vars/all.yml -e cluster=kubernetes --connection=local -i inventory-aws
 
+# generate motd
+cd /home/centos
+sudo ansible-playbook motd.yml -v
+rm motd*
+
+# cleanup
+rm cluster-wait.yml
+
 # disable the service so it only runs the first time the VM boots
 sudo chkconfig kubevirt-installer off
