@@ -84,6 +84,11 @@
       "type": "file",
       "source": "image-files/motd.yml",
       "destination": "/home/centos/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/emulation-configmap.yaml",
+      "destination": "/home/centos/"
     }
   ],
   "post-processors": [
