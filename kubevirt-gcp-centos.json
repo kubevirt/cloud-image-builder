@@ -74,6 +74,16 @@
     {
       "type": "shell",
       "inline": "sudo yum update -y"
+    },
+    {
+      "type": "file",
+      "source": "image-files/motd.j2",
+      "destination": "/home/centos/"
+    },
+    {
+      "type": "file",
+      "source": "image-files/motd.yml",
+      "destination": "/home/centos/"
     }
   ],
   "post-processors": [
