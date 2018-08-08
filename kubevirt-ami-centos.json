@@ -7,7 +7,12 @@
     "instance_type": "{{env `AWS_BUILD_INSTANCE_TYPE`}}",
     "subnet_id": "{{env `AWS_SUBNET_ID`}}",
     "security_group": "{{env `AWS_SECURITY_GROUP_ID`}}",
+<<<<<<< HEAD
     "aws_instance_name": "{{env `AWS_INSTANCE_NAME`}}"
+=======
+    "aws_instance_name": "{{env `AWS_INSTANCE_NAME`}}",
+    "kubevirt_version": "{{env `KUBEVIRT_VERSION`}}"
+>>>>>>> 123f20d8e517d54d421beb64c48467d85b8d2f18
   },
   "builders": [{
     "type": "amazon-ebs",
