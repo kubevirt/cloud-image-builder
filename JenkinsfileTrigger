@@ -1,6 +1,22 @@
 #!/usr/bin/env groovy
 
 
+def setCustomParams(String cloud) {
+    def imageParams = [:]
+    imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+    imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+    imageParams['TAG_NAME'] = env.TAG_NAME
+
+    if (cloud == 'gcp') {
+        imageParams['ssh_private_key'] = 'kubevirt-gcp-ssh-private-key'
+    } else {
+        imageParams['ssh_private_key'] = 'kubevirt-aws-ssh-private-key'
+    }
+
+    return imageParams
+}
+
+
 pipeline {
     agent {
         label 'master'
@@ -34,11 +50,8 @@ pipeline {
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
-                            imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
-                            imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
-                            imageParams['TAG_NAME'] = env.TAG_NAME
-
-                            scheduleBuild(buildName: 'centos-aws-image-build', stringParams: imageParams, triggerRetryCount: 1)
+                            imageParams << setCustomParams('aws')
+                            scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
@@ -46,14 +59,19 @@ pipeline {
                 stage('centos-gcp') {
                     when {
                         expression {
-                            sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*gcp*" > /dev/null') == 0
+                            anyOf {
+                                sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*gcp*|*gce*" > /dev/null') == 0
+                                changeset glob: "*gcp*"
+                                changeset glob: "*gce*"
+                            }
                         }
                     }
 
                     steps {
                         script {
                             def imageParams = readProperties file: 'environment.gcp'
-                            scheduleBuild(buildName: 'centos-gcp-image-build', stringParams: imageParams, triggerRetryCount: 1)
+                            imageParams << setCustomParams('gcp')
+                            scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
