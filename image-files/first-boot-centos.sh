@@ -15,6 +15,9 @@ echo "export KUBECONFIG=~/admin.conf" >> /home/centos/.bash_profile
 # wait for kubernetes cluster to be up
 sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local 
 
+# enable software emulation
+kubectl apply -f /home/centos/emulation-configmap.yaml
+
 # deploy kubevirt
 sudo ansible-playbook playbooks/kubevirt.yml -e@vars/all.yml -e cluster=kubernetes --connection=local -i inventory-aws
 
@@ -25,6 +28,7 @@ rm motd*
 
 # cleanup
 rm cluster-wait.yml
+rm emulation-configmap.yaml
 
 # disable the service so it only runs the first time the VM boots
 sudo chkconfig kubevirt-installer off

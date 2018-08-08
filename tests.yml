@@ -34,9 +34,6 @@
       retries: 12
       delay: 5
 
-    - name: allow vm emulation
-      command: kubectl apply -f /home/centos/tests/emulation-configmap.yaml
-
     - name: deploy cirros vmi
       command: kubectl apply -f /home/centos/tests/cirros-vmi.yaml
 
