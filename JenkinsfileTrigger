@@ -50,7 +50,7 @@ pipeline {
                         script {
                             def imageParams = readProperties file: 'environment.aws'
                             imageParams << setCustomParams('aws')
-                            scheduleBuild(buildName: 'centos-aws-image-build', stringParams: imageParams, triggerRetryCount: 1)
+                            scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
@@ -71,7 +71,7 @@ pipeline {
                         script {
                             def imageParams = readProperties file: 'environment.gcp'
                             imageParams << setCustomParams('gcp')
-                            scheduleBuild(buildName: 'centos-gcp-image-build', stringParams: imageParams, triggerRetryCount: 1)
+                            scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
                         }
                     }
                 }
