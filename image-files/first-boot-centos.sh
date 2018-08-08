@@ -16,7 +16,7 @@ echo "export KUBECONFIG=~/admin.conf" >> /home/centos/.bash_profile
 sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local 
 
 # enable software emulation
-kubectl apply -f /home/centos/emulation-configmap.yaml
+grep -q -E 'vmx|svm' /proc/cpuinfo || kubectl apply -f /home/centos/emulation-configmap.yaml
 
 # deploy kubevirt
 sudo ansible-playbook playbooks/kubevirt.yml -e@vars/all.yml -e cluster=kubernetes --connection=local -i inventory-aws
