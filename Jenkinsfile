@@ -32,10 +32,7 @@ def images = [
 
 builders = [:]
 
-images.each { name, values ->
-
-    def imageName = name
-    def imageValues = values
+images.each { imageName, imageValues ->
 
     def podName = "${imageName}-${UUID.randomUUID().toString()}"
 
@@ -91,7 +88,7 @@ images.each { name, values ->
                                 loadProps: ['build-image'], credentials: credentials)
                     }
 
-                    if (params['TAG_NAME']) {
+                    if (env['TAG_NAME']) {
                         stage("deploy-image-${imageName}") {
                             def cmd = """
                             ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
@@ -107,24 +104,16 @@ images.each { name, values ->
                     throw e
 
                 } finally {
-                    try {
+                    stage("cleanup-image-${imageName}") {
+                        def cmd = """
+                        ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
+                        """
 
-                        stage("cleanup-image-${imageName}") {
-                            def cmd = """
-                            ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
-                            """
-
-                            executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                                    loadProps: ['build-image'], credentials: credentials)
-                        }
-
-                        echo "ENDING BUILD OF - ${imageName}"
-
-                    } catch(e) {
-                        echo "cleanup for ${imageName} failed"
-                        echo e.toString()
-                        throw e
+                        executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                                loadProps: ['build-image'], credentials: credentials)
                     }
+
+                    echo "ENDING BUILD OF - ${imageName}"
                 }
             }
         }
