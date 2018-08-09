@@ -1,0 +1,250 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    aws_key_name: "{{ lookup('env', 'AWS_KEY_NAME') }}"
+    aws_security_group: "{{ lookup('env', 'AWS_SECURITY_GROUP') }}"
+    aws_instance_type: "{{ lookup('env', 'AWS_TEST_INSTANCE_TYPE') }}"
+    aws_ami: "{{ lookup('env', 'AWS_MARKETPLACE_AMI') }}"
+    aws_instance_name: "{{ lookup('env', 'AWS_INSTANCE_NAME') }}"
+    aws_region: "{{ lookup('env', 'AWS_REGION') }}"
+    aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
+  tasks:
+    - name: Terminate workspace instance that was previously launched
+      ec2_instance:
+        key_name: "{{ aws_key_name }}"
+        vpc_subnet_id: "{{ aws_subnet_id }}"
+        name: "kubevirt-push-button-workspace"
+        state: terminated
+        wait: yes
+
+    - name: Terminate marketplace-ami instance that was previously launched
+      ec2_instance:
+        key_name: "{{ aws_key_name }}"
+        vpc_subnet_id: "{{ aws_subnet_id }}"
+        name: "kubevirt-push-button-marketplace-ami"
+        state: terminated
+        wait: yes
+
+    - name: Provision the marketplace ami instance
+      ec2:
+         assign_public_ip: yes
+         key_name: "{{ aws_key_name }}"
+         group: "{{ aws_security_group }}"
+         instance_type: "{{ aws_instance_type }}"
+         image: "{{ aws_ami }}"
+         wait: true
+         exact_count: 1
+         count_tag:
+            Name: "kubevirt-push-button-marketplace-ami"
+         instance_tags:
+            Name: "kubevirt-push-button-marketplace-ami"
+         region: "{{ aws_region }}"
+         volumes:
+           - device_name: /dev/sda1
+             volume_type: gp2
+             volume_size: 8
+             delete_on_termination: true
+         vpc_subnet_id: "{{ aws_subnet_id }}"
+      register: marketplace_ami
+
+    - name: debug marketplace_ami
+      debug: var=marketplace_ami
+
+    - name: find marketplace ami volume
+      set_fact: marketplace_ami_volume_id={{ marketplace_ami['instances'][0]['block_device_mapping']['/dev/sda1']['volume_id'] }}
+
+    - name: debug marketplace_ami_volume_id
+      debug: var=marketplace_ami_volume_id
+
+    - name: Provision workspace instance
+      ec2:
+         assign_public_ip: yes
+         key_name: "{{ aws_key_name }}"
+         group: "{{ aws_security_group }}"
+         instance_type: "{{ aws_instance_type }}"
+         image: "{{ aws_ami }}"
+         wait: true
+         exact_count: 1
+         count_tag:
+            Name: "kubevirt-push-button-workspace"
+         instance_tags:
+            Name: "kubevirt-push-button-workspace"
+         region: "{{ aws_region }}"
+         volumes:
+           - device_name: /dev/sda1
+             volume_type: gp2
+             volume_size: 8
+             delete_on_termination: true
+         vpc_subnet_id: "{{ aws_subnet_id }}"
+      register: workspace_ami
+
+    - name: stop marketplace-ami instance
+      ec2:
+        state: 'stopped'
+        instance_ids: "{{ marketplace_ami.instance_ids }}"
+        wait: yes
+
+    - name: stop workspace instance
+      ec2:
+        state: 'stopped'
+        instance_ids: "{{ workspace_ami.instance_ids }}"
+        wait: yes
+
+    - name: find workspace instance root volume
+      set_fact: workspace_root_volume_id={{ workspace_ami['instances'][0]['block_device_mapping']['/dev/sda1']['volume_id'] }}
+
+    - name: debug workspace_ami
+      debug: var=workspace_ami
+
+    - name: detach root volume from marketplace ami
+      ec2_vol:
+        id: "{{ marketplace_ami_volume_id }}"
+        instance: None
+
+    - name: attach marketplace ami volume to workspace instance
+      ec2_vol:
+        id: "{{ marketplace_ami_volume_id }}"
+        instance: "{{ workspace_ami['instance_ids'][0] }}"
+        device_name: /dev/sdf
+      register: marketplace_volume
+
+    - name: attach new volume to workspace instance
+      ec2_vol:
+        instance: "{{ workspace_ami['instance_ids'][0] }}"
+        volume_size: 8
+        volume_type: gp2
+        device_name: /dev/sdg
+      register: new_volume
+
+    - name: debug marketplace_voume
+      debug: var=marketplace_volume
+
+    - name: debug new_volume
+      debug: var=new_volume
+
+    - name: start workspace instance
+      ec2:
+        state: 'running'
+        instance_ids: "{{ workspace_ami.instance_ids }}"
+        wait: yes
+      register:
+        workspace_instance
+
+    - name: Add new instance to host group
+      add_host:
+        hostname: "{{ item.public_dns_name }}"
+        groupname: launched
+      with_items: "{{ workspace_instance.instances }}"
+
+    - name: Wait for SSH to come up
+      wait_for:
+        host: "{{ item.public_dns_name }}"
+        port: 22
+        delay: 60
+        timeout: 600
+        state: started
+      with_items: "{{ workspace_instance.instances }}"
+
+    - name: Make sure the known hosts file exists
+      file: "path={{ ssh_known_hosts_file }} state=touch"
+
+    - name: Check host name availability
+      shell: "ssh-keygen -f {{ ssh_known_hosts_file }} -F {{ item.public_dns_name }}"
+      with_items: "{{ workspace_instance.instances }}"
+      register: z_ssh_known_host_results
+      ignore_errors: yes
+
+    - name: Scan the public key
+      shell: "{{ ssh_known_hosts_command}} {{ item.item.public_dns_name }} >> {{ ssh_known_hosts_file }}"
+      with_items: "{{ z_ssh_known_host_results.results }}"
+      when: item.stdout == ""
+
+- name: copy marketplace ami contents to new volume
+  hosts: launched
+  user: centos
+  become: True
+  gather_facts: True
+  tasks:
+    - name: format device
+      command: sudo mkfs -t xfs /dev/xvdg
+
+    - name: copy device
+      command: sudo dd conv=sync,noerror bs=64K status=progress if=/dev/xvdf of=/dev/xvdg
+
+    - name: sync
+      command: sudo sync
+
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  vars:
+    aws_ami_name: "{{ lookup('env', 'AWS_AMI_NAME') | default('kubevirt-centos-base-ami-' + ansible_date_time.iso8601_basic_short, true) }}" 
+  tasks:
+    - name: stop workspace instance
+      ec2:
+        state: 'stopped'
+        instance_ids: "{{ workspace_ami.instance_ids }}"
+        wait: yes
+
+    - name: detach root volume from workspace instance and delete
+      ec2_vol:
+        id: "{{ workspace_root_volume_id }}"
+        instance: None
+
+    - name: delete workspace root volume
+      ec2_vol:
+        id: "{{ workspace_root_volume_id }}"
+        state: absent
+
+    - name: detach marketplace ami volume from workspace instance
+      ec2_vol:
+        id: "{{ marketplace_ami_volume_id }}"
+        instance: None
+
+    - name: delete marketplace ami volume
+      ec2_vol:
+        id: "{{ marketplace_ami_volume_id }}"
+        state: absent
+
+    - name: detach workspace new volume from /dev/sdg
+      ec2_vol:
+        id: "{{ new_volume.volume_id }}"
+        instance: None
+
+    - name: attach new volume to workspace as /dev/sda1
+      ec2_vol:
+        id: "{{ new_volume.volume_id }}"
+        instance: "{{ workspace_ami['instance_ids'][0] }}"
+        device_name: /dev/sda1    
+
+    - name: create base ami from workspace
+      ec2_ami:
+        instance_id: "{{ workspace_ami['instance_ids'][0] }}"
+        wait: yes
+        name: "{{ aws_ami_name }}"
+        tags:
+          Name: "{{ aws_ami_name }}"
+
+    - name: detach new volume from workspace instance
+      ec2_vol:
+        id: "{{ new_volume.volume_id }}"
+        instance: None
+
+    - name: delete new volume
+      ec2_vol:
+        id: "{{ new_volume.volume_id }}"
+        state: absent
+
+    - name: terminate marketplace-ami instance
+      ec2:
+        state: 'absent'
+        instance_ids: "{{ marketplace_ami.instance_ids }}"
+        wait: yes
+
+    - name: terminate workspace instance
+      ec2:
+        state: 'absent'
+        instance_ids: "{{ workspace_ami.instance_ids }}"
+        wait: yes
+
