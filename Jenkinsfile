@@ -29,10 +29,6 @@ def images = [
         ]
 ]
 
-
-def credentials = [:]
-def params = []
-
 def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
 def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
 
@@ -51,6 +47,9 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
         images.each { imageName, imageValues ->
 
             try {
+
+                def credentials = [:]
+                def params = []
 
                 stage("prepare-environment-${imageName}") {
                     handlePipelineStep {
@@ -95,8 +94,7 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
                 }
 
             } catch (e) {
-                echo e.getMessage()
-                throw e
+                echo e.toString()
 
             } finally {
                 stage("cleanup-image-${imageName}") {
