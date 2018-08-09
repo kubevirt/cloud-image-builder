@@ -30,51 +30,53 @@ def images = [
 ]
 
 
-def buildJob = { image ->
+def credentials = [:]
+def params = []
 
-    def credentials = [:]
-    def params = []
+def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
+def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
 
-    def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
-    def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
+def archives = {
+    step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
+          artifacts: 'packer-build-*.json', fingerprint: true])
+}
 
-    def archives = {
-        step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
-              artifacts: 'packer-build-manifest.json', fingerprint: true])
-    }
+deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
+        docker_repo_url: '172.30.254.79:5000', jenkins_slave_image: 'jenkins-contra-slave:latest') {
 
-    deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
-            docker_repo_url: '172.30.254.79:5000', jenkins_slave_image: 'jenkins-contra-slave:latest') {
+    ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives) {
 
-        ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives) {
+        checkout scm
+
+        images.each { imageName, imageValues ->
 
             try {
 
-                stage('prepare-environment') {
+                stage("prepare-environment-${imageName}") {
                     handlePipelineStep {
-                        checkout scm
-                        params = readProperties file: image['envFile']
-                        credentials = image['credentials']
+                        print "STARTING BUILD OF - ${imageName}"
+                        params = readProperties file: imageValues['envFile']
+                        credentials = imageValues['credentials']
                     }
                 }
 
-                stage('build-image') {
+                stage("build-image-${imageName}") {
                     def cmd = """
-                    curl -L -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
-                    unzip /tmp/packer.zip -d .
-                    sh \${BUILD_SCRIPT}
-                    """
+                curl -L -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
+                unzip /tmp/packer.zip -d .
+                sh \${BUILD_SCRIPT}
+                """
 
                     executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                             credentials: credentials)
 
                 }
 
-                stage('test-image') {
+                stage("test-image-${imageName}") {
                     def cmd = """
-                    mkdir -p ~/.ssh
-                    ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK}
-                    """
+                mkdir -p ~/.ssh
+                ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK}
+                """
 
 
                     executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
@@ -82,10 +84,10 @@ def buildJob = { image ->
                 }
 
                 if (params['TAG_NAME']) {
-                    stage('deploy-image') {
+                    stage("deploy-image-${imageName}") {
                         def cmd = """
-                    ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
-                    """
+                ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
+                """
 
                         executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                                 loadProps: ['build-image'], credentials: credentials)
@@ -97,16 +99,16 @@ def buildJob = { image ->
                 throw e
 
             } finally {
-                stage('cleanup-image') {
+                stage("cleanup-image-${imageName}") {
                     def cmd = """
-                    ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
-                    """
+                ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
+                """
                     executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                             loadProps: ['build-image'], credentials: credentials)
                 }
+
+                print "ENDING BUILD OF - ${imageName}"
             }
         }
     }
 }
-
-buildJob(images['aws-centos'])
