@@ -7,6 +7,7 @@
     "instance_type": "{{env `AWS_BUILD_INSTANCE_TYPE`}}",
     "subnet_id": "{{env `AWS_SUBNET_ID`}}",
     "security_group": "{{env `AWS_SECURITY_GROUP_ID`}}",
+    "aws_instance_name": "{{env `AWS_INSTANCE_NAME`}}",
     "kubevirt_version": "{{env `KUBEVIRT_VERSION`}}"
   },
   "builders": [{
@@ -17,8 +18,8 @@
     "source_ami": "{{user `source_ami`}}",
     "instance_type": "{{user `instance_type`}}",
     "ssh_username": "centos",
-    "ami_name": "centos-kubevirt-{{timestamp}}",
     "ami_description": "Kubevirt button based on {{user `kubevirt_version`}}",
+    "ami_name": "{{user `aws_instance_name`}}",
     "subnet_id": "{{user `subnet_id`}}",
     "associate_public_ip_address": "true",
     "security_group_id": "{{user `security_group`}}"
@@ -38,6 +39,11 @@
       "type": "file",
       "source": "image-files/virtctl",
       "destination": "/home/centos/"
+    },
+    {
+      "type": "file",
+      "source": "tests",
+      "destination": "/home/centos"
     },
     {
       "type": "file",
@@ -72,21 +78,6 @@
     {
       "type": "shell",
       "inline": "sudo yum update -y"
-    },
-    {
-      "type": "file",
-      "source": "image-files/motd.j2",
-      "destination": "/home/centos/"
-    },
-    {
-      "type": "file",
-      "source": "image-files/motd.yml",
-      "destination": "/home/centos/"
-    },
-    {
-      "type": "file",
-      "source": "image-files/emulation-configmap.yaml",
-      "destination": "/home/centos/"
     }
   ],
   "post-processors": [

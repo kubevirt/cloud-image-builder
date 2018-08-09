@@ -1,0 +1,81 @@
+#!/usr/bin/env groovy
+
+
+def setCustomParams(String cloud) {
+    def imageParams = [:]
+    imageParams['CHANGE_BRANCH'] = env.CHANGE_BRANCH
+    imageParams['CHANGE_AUTHOR'] = env.CHANGE_AUTHOR
+    imageParams['TAG_NAME'] = env.TAG_NAME
+
+    if (cloud == 'gcp') {
+        imageParams['ssh_private_key'] = 'kubevirt-gcp-ssh-private-key'
+    } else {
+        imageParams['ssh_private_key'] = 'kubevirt-aws-ssh-private-key'
+    }
+
+    return imageParams
+}
+
+
+pipeline {
+    agent {
+        label 'master'
+    }
+
+    stages {
+
+        // Decorate the build with the branch, change owner and build number
+        stage('decorate-build') {
+            steps {
+                script {
+                    decoratePRBuild()()
+                }
+            }
+        }
+
+        stage('run-tests') {
+            parallel {
+                stage('centos-aws') {
+                    when {
+                        expression {
+                            anyOf {
+                                sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*ami*|*aws*|*ec2*" > /dev/null') == 0
+                                changeset glob: "*aws*"
+                                changeset glob: "*ec2*"
+                                changeset glob: "*ami*"
+                            }
+                        }
+                    }
+
+                    steps {
+                        script {
+                            def imageParams = readProperties file: 'environment.aws'
+                            imageParams << setCustomParams('aws')
+                            scheduleBuild(buildName: 'centos-aws-image-build', params: imageParams, triggerRetryCount: 1)
+                        }
+                    }
+                }
+
+                stage('centos-gcp') {
+                    when {
+                        expression {
+                            anyOf {
+                                sh(returnStatus: true, script: 'git diff  origin/master --name-only | egrep -i "*gcp*|*gce*" > /dev/null') == 0
+                                changeset glob: "*gcp*"
+                                changeset glob: "*gce*"
+                            }
+                        }
+                    }
+
+                    steps {
+                        script {
+                            def imageParams = readProperties file: 'environment.gcp'
+                            imageParams << setCustomParams('gcp')
+                            scheduleBuild(buildName: 'centos-gcp-image-build', params: imageParams, triggerRetryCount: 1)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

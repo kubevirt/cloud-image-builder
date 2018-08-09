@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -x
+
 cd image-files
 if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
@@ -12,4 +15,5 @@ chmod +x virtctl
 cp cluster-localhost.yml kubevirt-ansible/playbooks/cluster/kubernetes
 cd ..
 
-$PACKER build --force $PACKER_BUILD_TEMPLATE
+$PACKER build -debug -machine-readable --force $PACKER_BUILD_TEMPLATE | tee build.log
+echo "AWS_TEST_AMI=`egrep -m1 -oe 'ami-.{8}' build.log`" >> job.props
