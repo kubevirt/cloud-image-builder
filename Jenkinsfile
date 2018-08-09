@@ -29,91 +29,104 @@ def images = [
         ]
 ]
 
-def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
-def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
+builders = [:]
 
-def archives = {
-    step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
-          artifacts: 'packer-build-*.json', fingerprint: true])
-}
+images.each { name, values ->
 
-deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
-        docker_repo_url: '172.30.254.79:5000', jenkins_slave_image: 'jenkins-contra-slave:latest') {
+    def imageName = name
+    def imageValues = values
 
-    ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives) {
+    def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
 
-        checkout scm
+    builders[podName] = {
 
-        images.each { imageName, imageValues ->
-            def credentials = []
-            def params = [:]
+        def params = [:]
+        def credentials = []
 
-            try {
-
-                stage("prepare-environment-${imageName}") {
-                    handlePipelineStep {
-                        echo "STARTING BUILD OF - ${imageName}"
-                        params = readProperties file: imageValues['envFile']
-                        credentials = imageValues['credentials']
-                    }
-                }
-
-                stage("build-image-${imageName}") {
-                    def cmd = """
-                curl -L -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
-                unzip /tmp/packer.zip -d .
-                sh \${BUILD_SCRIPT}
-                """
-
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                            credentials: credentials)
-
-                }
-
-                stage("test-image-${imageName}") {
-                    def cmd = """
-                mkdir -p ~/.ssh
-                ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK}
-                """
+        def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
 
 
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                            loadProps: ['build-image'], credentials: credentials)
-                }
+        def archives = {
+            step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
+                  artifacts: 'packer-build-*.json', fingerprint: true])
+        }
 
-                if (params['TAG_NAME']) {
-                    stage("deploy-image-${imageName}") {
-                        def cmd = """
-                ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
-                """
+        deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
+                docker_repo_url: '172.30.254.79:5000', jenkins_slave_image: 'jenkins-contra-slave:latest') {
 
-                        executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                                loadProps: ['build-image'], credentials: credentials)
-                    }
-                }
+            ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives) {
 
-            } catch (e) {
-                echo e.toString()
+                checkout scm
 
-            } finally {
                 try {
 
-                    stage("cleanup-image-${imageName}") {
+                    stage("prepare-environment-${imageName}") {
+                        handlePipelineStep {
+                            echo "STARTING BUILD OF - ${imageName}"
+                            params = readProperties file: imageValues['envFile']
+                            credentials = imageValues['credentials']
+                        }
+                    }
+
+                    stage("build-image-${imageName}") {
                         def cmd = """
-                    ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
-                    """
+                        curl -L -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
+                        unzip /tmp/packer.zip -d .
+                        sh \${BUILD_SCRIPT}
+                        """
+
+                        executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                                credentials: credentials)
+
+                    }
+
+                    stage("test-image-${imageName}") {
+                        def cmd = """
+                        mkdir -p ~/.ssh
+                        ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK}
+                        """
+
+
                         executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                                 loadProps: ['build-image'], credentials: credentials)
                     }
 
-                    echo "ENDING BUILD OF - ${imageName}"
+                    if (params['TAG_NAME']) {
+                        stage("deploy-image-${imageName}") {
+                            def cmd = """
+                            ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
+                            """
 
-                } catch(e) {
-                    echo "cleanup for ${imageName} failed"
+                            executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                                    loadProps: ['build-image'], credentials: credentials)
+                        }
+                    }
+
+                } catch (e) {
                     echo e.toString()
-                }
 
+                } finally {
+                    try {
+
+                        stage("cleanup-image-${imageName}") {
+                            def cmd = """
+                            ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
+                            """
+                            
+                            executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                                    loadProps: ['build-image'], credentials: credentials)
+                        }
+
+                        echo "ENDING BUILD OF - ${imageName}"
+
+                    } catch(e) {
+                        echo "cleanup for ${imageName} failed"
+                        echo e.toString()
+                    }
+                }
             }
         }
     }
 }
+
+parallel builders
