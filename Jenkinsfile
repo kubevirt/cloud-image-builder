@@ -104,6 +104,7 @@ images.each { name, values ->
 
                 } catch (e) {
                     echo e.toString()
+                    throw e
 
                 } finally {
                     try {
@@ -112,7 +113,7 @@ images.each { name, values ->
                             def cmd = """
                             ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
                             """
-                            
+
                             executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                                     loadProps: ['build-image'], credentials: credentials)
                         }
@@ -122,6 +123,7 @@ images.each { name, values ->
                     } catch(e) {
                         echo "cleanup for ${imageName} failed"
                         echo e.toString()
+                        throw e
                     }
                 }
             }
