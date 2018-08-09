@@ -45,15 +45,14 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
         checkout scm
 
         images.each { imageName, imageValues ->
+            def credentials = []
+            def params = [:]
 
             try {
 
-                def credentials = [:]
-                def params = []
-
                 stage("prepare-environment-${imageName}") {
                     handlePipelineStep {
-                        print "STARTING BUILD OF - ${imageName}"
+                        echo "STARTING BUILD OF - ${imageName}"
                         params = readProperties file: imageValues['envFile']
                         credentials = imageValues['credentials']
                     }
@@ -97,15 +96,23 @@ deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'k
                 echo e.toString()
 
             } finally {
-                stage("cleanup-image-${imageName}") {
-                    def cmd = """
-                ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
-                """
-                    executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                            loadProps: ['build-image'], credentials: credentials)
+                try {
+
+                    stage("cleanup-image-${imageName}") {
+                        def cmd = """
+                    ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
+                    """
+                        executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
+                                loadProps: ['build-image'], credentials: credentials)
+                    }
+
+                    echo "ENDING BUILD OF - ${imageName}"
+
+                } catch(e) {
+                    echo "cleanup for ${imageName} failed"
+                    echo e.toString()
                 }
 
-                print "ENDING BUILD OF - ${imageName}"
             }
         }
     }
