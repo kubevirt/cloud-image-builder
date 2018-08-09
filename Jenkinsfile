@@ -32,6 +32,9 @@ def images = [
 
 def buildJob = { image ->
 
+    def credentials = [:]
+    def params = []
+
     def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
     def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
 
@@ -50,8 +53,8 @@ def buildJob = { image ->
                 stage('prepare-environment') {
                     handlePipelineStep {
                         checkout scm
-                        def params = readProperties file: image['envFile']
-                        def credentials = image['credentials']
+                        params = readProperties file: image['envFile']
+                        credentials = image['credentials']
                     }
                 }
 
