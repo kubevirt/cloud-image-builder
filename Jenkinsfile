@@ -1,5 +1,6 @@
 #!/usr/bin/env groovy
 
+
 def gcp_credentials = [
         sshUserPrivateKey(credentialsId: 'kubevirt-gcp-ssh-private-key', keyFileVariable: 'SSH_KEY_LOCATION'),
         file(credentialsId: 'kubevirt-gcp-credentials-file', variable: 'GOOGLE_APPLICATION_CREDENTIALS'),
@@ -36,7 +37,7 @@ images.each { name, values ->
     def imageName = name
     def imageValues = values
 
-    def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
+    def podName = "${imageName}-${UUID.randomUUID().toString()}"
 
     builders[podName] = {
 
@@ -56,13 +57,12 @@ images.each { name, values ->
 
             ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives) {
 
-                checkout scm
-
                 try {
 
                     stage("prepare-environment-${imageName}") {
                         handlePipelineStep {
                             echo "STARTING BUILD OF - ${imageName}"
+                            checkout scm
                             params = readProperties file: imageValues['envFile']
                             credentials = imageValues['credentials']
                         }
