@@ -32,9 +32,6 @@ def images = [
 
 def buildJob = { image ->
 
-    def params = readProperties file: image['envFile']
-    def credentials = image['credentials']
-
     def containers = ['ansible-executor': [tag: 'latest', privileged: false, command: 'uid_entrypoint cat']]
     def podName = "cloud-image-builder-${UUID.randomUUID().toString()}"
 
@@ -50,6 +47,14 @@ def buildJob = { image ->
 
             try {
 
+                stage('prepare-environment') {
+                    handlePipelineStep {
+                        checkout scm
+                        def params = readProperties file: image['envFile']
+                        def credentials = image['credentials']
+                    }
+                }
+
                 stage('build-image') {
                     def cmd = """
                     curl -L -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.5/packer_1.2.5_linux_amd64.zip
@@ -57,7 +62,6 @@ def buildJob = { image ->
                     sh \${BUILD_SCRIPT}
                     """
 
-                    checkout scm
                     executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
                             credentials: credentials)
 
