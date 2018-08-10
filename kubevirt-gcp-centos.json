@@ -94,7 +94,7 @@
   "post-processors": [
     {
       "type": "manifest",
-      "output": "packer-build-manifest.json",
+      "output": "packer-build-manifest-gcp.json",
       "strip_path": true
     }
   ]

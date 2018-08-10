@@ -83,7 +83,7 @@
   "post-processors": [
     {
       "type": "manifest",
-      "output": "packer-build-manifest.json",
+      "output": "packer-build-manifest-aws.json",
       "strip_path": true
     }
   ]
