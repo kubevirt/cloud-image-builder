@@ -12,7 +12,7 @@
   
     - name: read build artifact
       include_vars: 
-        file: packer-build-manifest.json 
+        file: packer-build-manifest-aws.json
         name: build_artifact
 
     - name: print ami_id
