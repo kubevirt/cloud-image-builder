@@ -67,7 +67,7 @@
     },
     {
       "type": "shell",
-      "inline": "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit"
+      "inline": "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit wget git"
     },
     {
       "type": "shell",
