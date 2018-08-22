@@ -12,7 +12,7 @@
   tasks:
     - name: Read build artifact
       include_vars:
-        file: packer-build-manifest.json
+        file: packer-build-manifest-gcp.json
         name: build_artifact
 
     - name: Set Push Button Image Name
