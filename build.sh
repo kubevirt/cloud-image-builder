@@ -4,6 +4,7 @@ set -x
 cd image-files
 if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
+  sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
   # TODO: Remove after kubevirt-ansible has moved to 0.8.0.
   sed -i 's@version: 0.7.0@version: 0.8.0-alpha.0@' kubevirt-ansible/vars/all.yml
