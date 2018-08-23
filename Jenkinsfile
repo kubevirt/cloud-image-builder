@@ -85,7 +85,7 @@ images.each { imageName, imageValues ->
 
 
                         executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                                loadProps: ['build-image'], credentials: credentials)
+                                loadProps: ["build-image-${imageName}"], credentials: credentials)
                     }
 
                     if (env['TAG_NAME']) {
@@ -95,7 +95,7 @@ images.each { imageName, imageValues ->
                             """
 
                             executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
-                                    loadProps: ['build-image'], credentials: credentials)
+                                    loadProps: ["build-image-${imageName}"], credentials: credentials)
                         }
                     }
 
