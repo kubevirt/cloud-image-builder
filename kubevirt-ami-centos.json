@@ -22,7 +22,10 @@
     "ami_name": "{{user `aws_instance_name`}}",
     "subnet_id": "{{user `subnet_id`}}",
     "associate_public_ip_address": "true",
-    "security_group_id": "{{user `security_group`}}"
+    "security_group_id": "{{user `security_group`}}",
+    "run_tags": {
+       "Name": "{{user `aws_instance_name`}}"
+    }
   }],
   "provisioners": [
     {
