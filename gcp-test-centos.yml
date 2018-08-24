@@ -9,6 +9,7 @@
     zone: "{{ lookup('env', 'ZONE') }}"
     service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
     ssh_public_key: "{{ lookup('file', lookup('env', 'GCP_SSH_PUBLIC_KEY')) }}"
+    instance_name: "{{ lookup('env', 'IMAGE_NAME') }}",
   tasks:
     - name: Read build artifact
       include_vars:
@@ -20,7 +21,7 @@
 
     - name: Provision the test instance
       gce:
-         instance_names: my-test-instance1
+         instance_names: "{{ instance_name }}"
          zone: "{{ zone }}"
          machine_type: "{{ machine_type }}"
          image: "{{ image }}"

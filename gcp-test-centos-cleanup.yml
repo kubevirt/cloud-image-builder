@@ -2,7 +2,7 @@
   connection: local
   gather_facts: False
   vars:
-    gcp_instance_name: "my-test-instance1"
+    gcp_instance_name: "{{ lookup('env', 'IMAGE_NAME') }}"
     credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
     project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     zone: "{{ lookup('env', 'ZONE') }}"
