@@ -62,6 +62,11 @@ images.each { imageName, imageValues ->
                             checkout scm
                             params = readProperties file: imageValues['envFile']
                             credentials = imageValues['credentials']
+
+                            // modify any parameters
+                            imageParam = env.TAG_NAME ?: (env.BRANCH_NAME ?: 'master')
+                            params['IMAGE_NAME'] = "${params['IMAGE_NAME']}-${imageParam}"
+
                         }
                     }
 
