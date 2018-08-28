@@ -8,4 +8,3 @@ AWS_REGION=us-east-1
 PACKER=./packer
 BUILD_SCRIPT=build.sh
 PLAYBOOK_DEPLOY=aws-ami-publish.yml
-IMAGE_NAME=kubevirt-centos
