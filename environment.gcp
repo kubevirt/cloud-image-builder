@@ -12,4 +12,3 @@ PLAYBOOK=gcp-test-centos.yml
 PLAYBOOK_CLEANUP=gcp-test-centos-cleanup.yml
 PLAYBOOK_DEPLOY=gcp-image-publish.yml
 BUILD_SCRIPT=./build.sh
-
