@@ -1,5 +1,5 @@
 PACKER_BUILD_TEMPLATE=kubevirt-ami-centos.json
-AWS_SOURCE_AMI=ami-9887c6e7
+AWS_SOURCE_AMI=ami-c5e5f7ba
 PLAYBOOK=ec2-test-centos.yml
 PLAYBOOK_CLEANUP=ec2-test-centos-cleanup.yml
 AWS_INSTANCE_NAME=kubevirt-centos
