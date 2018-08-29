@@ -3,6 +3,10 @@
 The repo contains scripts and playbooks that can be used to build and 
 test an Amazon AWS AMI/GCP image containing Kubernetes and KubeVirt.
 
+## Links
+
+* CI Status: https://jenkins-kubevirt.apps.ci.centos.org/blue/organizations/jenkins/cloud-image-builder/activity
+
 ## Process Overview
 
 Jenkins initiates an image build and test for each PR submitted or tag
@@ -30,17 +34,17 @@ CI marks the PR as verified if the test is successful on all cloud
 providers. It also executes playbooks to cleanup the test environment
 terminating the cloud instances that were brought up.
 
-If the build is initiated by way of a new tag, then it executes the 
+3. If the build is initiated by way of a new tag, then it executes the 
 publishing step through two playbooks: aws-image-publish.yml and
-gcp-image-publish.yml. 
+gcp-image-publish.yml.
 
-3a. Making AWS image publicly available
+a. Making AWS image publicly available
 
 The original image that was built and tested was created in the us-east-1 
 region. The aws-image-publish.yml playbook makes this image as public 
 and then copies the image to all other AWS regions and makes them public.
 
-3b. Making GCP image publicly available
+b. Making GCP image publicly available
 
 The following command is used to make the constructed image publicly available
 
@@ -51,6 +55,16 @@ IMAGE="kubevirt-button"
 VERSION="v0.7.0"
 gcloud compute images export --destination-uri gs://$BUCKET/$VERSION.tar.gz --image $IMAGE --project $PROJECT
 ```
+## Releases
+
+Cloud-image-builder releases mirror KubeVirt releases. When a new version
+of Kubevirt is released, we submit a PR to this repo to update build.sh
+with the new KubeVirt version number. After that PR has passed CI and has
+been merged, then we create a new version tag for cloud-image-builder.
+
+Tagging creates a new branch in Jenkins. The CI build does not start
+automatically for the new branch. An admin must initiate the build for the
+branch here: https://jenkins-kubevirt.apps.ci.centos.org/blue/organizations/jenkins/cloud-image-builder/branches
 
 ## Pipeline
 [Jenkins Pipeline](https://jenkins-kubevirt.apps.ci.centos.org/)

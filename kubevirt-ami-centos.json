@@ -18,7 +18,7 @@
     "source_ami": "{{user `source_ami`}}",
     "instance_type": "{{user `instance_type`}}",
     "ssh_username": "centos",
-    "ami_description": "Kubevirt button based on {{user `kubevirt_version`}}",
+    "ami_description": "KubeVirt button based on {{user `kubevirt_version`}}",
     "ami_name": "{{user `aws_instance_name`}}",
     "subnet_id": "{{user `subnet_id`}}",
     "associate_public_ip_address": "true",
