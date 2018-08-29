@@ -65,6 +65,7 @@ images.each { imageName, imageValues ->
 
                             // modify any parameters
                             imageParam = env.TAG_NAME ?: (env.BRANCH_NAME ?: 'master')
+                            imageParam = "${imageParam}-build-${env.BUILD_NUMBER}"
                             params['IMAGE_NAME'] = "${params['IMAGE_NAME']}-${imageParam.toLowerCase()}"
                         }
                     }
