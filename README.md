@@ -58,9 +58,19 @@ gcloud compute images export --destination-uri gs://$BUCKET/$VERSION.tar.gz --im
 ## Releases
 
 Cloud-image-builder releases mirror KubeVirt releases. When a new version
-of Kubevirt is released, we submit a PR to this repo to update build.sh
-with the new KubeVirt version number. After that PR has passed CI and has
-been merged, then we create a new version tag for cloud-image-builder.
+of Kubevirt is released, we initiate a build on the master branch here: https://jenkins-kubevirt.apps.ci.centos.org/blue/organizations/jenkins/cloud-image-builder/branches
+If the build succeeds and KUBEVIRT_VERSION in pipeline.log matches the
+new version then we can proceed to tag a new release.
+
+If the build fails then the failure needs to be triaged and fixed before 
+creating a new release tag. If KUBERVIRT_VERSION in pipeline.log does not
+match the new release then it likely means kubevirt-ansible has not been 
+updated with the new KubeVirt version number. We can elect to either wait 
+until kubevirt-ansible is updated or we make modifications to build.sh 
+to set the version number.
+
+After we have validated that the new KubeVirt version is working in our
+CI build and test, then we create a new version tag for cloud-image-builder.
 
 Tagging creates a new branch in Jenkins. The CI build does not start
 automatically for the new branch. An admin must initiate the build for the
