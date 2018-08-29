@@ -3,7 +3,7 @@
   gather_facts: False
   vars:
     aws_key_name: "{{ lookup('env', 'AWS_KEY_NAME') }}"
-    aws_instance_name: "{{ lookup('env', 'AWS_INSTANCE_NAME') }}"
+    aws_instance_name: "{{ lookup('env', 'IMAGE_NAME') }}"
     aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
   tasks:
     - name: stop test ec2 instance

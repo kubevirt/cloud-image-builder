@@ -6,7 +6,7 @@
     aws_security_group: "{{ lookup('env', 'AWS_SECURITY_GROUP') }}"
     aws_instance_type: "{{ lookup('env', 'AWS_TEST_INSTANCE_TYPE') }}"
     aws_ami: "{{ lookup('env', 'AWS_MARKETPLACE_AMI') }}"
-    aws_instance_name: "{{ lookup('env', 'AWS_INSTANCE_NAME') }}"
+    aws_instance_name: "{{ lookup('env', 'IMAGE_NAME') }}"
     aws_region: "{{ lookup('env', 'AWS_REGION') }}"
     aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
   tasks:
