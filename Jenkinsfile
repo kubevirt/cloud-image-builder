@@ -64,8 +64,8 @@ images.each { imageName, imageValues ->
                             credentials = imageValues['credentials']
 
                             // modify any parameters
-                            imageParam = (env.TAG_NAME ?: (env.BRANCH_NAME ?: 'master')).replaceAll('-','')
-                            //params['IMAGE_NAME'] = "${params['IMAGE_NAME']}-${imageParam}"
+                            imageParam = env.TAG_NAME ?: (env.BRANCH_NAME ?: 'master')
+                            params['IMAGE_NAME'] = "${params['IMAGE_NAME']}-${imageParam}"
 
                         }
                     }
