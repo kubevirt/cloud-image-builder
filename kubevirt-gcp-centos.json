@@ -15,7 +15,7 @@
       "project_id": "{{user `project_id`}}",
       "source_image_family": "centos-7",
       "disk_size": "{{user `disk_size`}}",
-      "image_description": "KubeVirt button based on {{user `kubevirt_version`}}",
+      "image_description": "KubeVirt push button trial based on {{user `kubevirt_version`}}. A minimum of 4GB of memory is recommended.",
       "image_name": "{{user `image_name`}}",
       "instance_name": "{{user `image_name`}}",
       "machine_type": "{{user `machine_type`}}",
