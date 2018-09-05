@@ -85,14 +85,14 @@ Also, when a commit is pushed to an open pull request, the corresponding pipelin
 for each configured image in parallel. Currently it builds a CentOS image for GCP and AWS.
 
 ### cloud-image-builder
-The cloud-image-builder job consists of Four stages. The first stage 
+The cloud-image-builder job consists of four stages. The first stage 
 called prepare-environment loads all variables related to each image. The next stage, build-image invokes packer to build the
 respective image for the environment. After that the test-image stage is called. This stage runs an ansible playbook that contains 
 tests for each image. The final stage is deploy-image. This stage runs an ansible playbook to publish the image. This stage only
 runs if a tag was pushed to the repository.
 
 ### Jenkins jobs
-There is a Jenkins job for the master branch, a job for each PR and a job for each git tag.
+There is a Jenkins job for the master branch, a job for each PR and git tag.
 #### master branch job
 This job runs on each merge to master.
 #### PR jobs
@@ -100,9 +100,6 @@ This job runs on each opened PR and each commit to the PR. The job checks out th
 and then runs through each testing phase.
 #### Tag jobs
 This job is created when a new tag is pushed to the repository. The job will only run when manually invoked.
-
-### Publishing images
-
 
 ### Pipeline metrics
 Basic metrics for each jenkins job can be viewed here. [Metrics](http://grafana-continuous-infra.apps.ci.centos.org/d/adsyE4Kmk/kubevirt-image-builder)
