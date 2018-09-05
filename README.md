@@ -80,29 +80,29 @@ branch here: https://jenkins-kubevirt.apps.ci.centos.org/blue/organizations/jenk
 [Jenkins Pipeline](https://jenkins-kubevirt.apps.ci.centos.org/)
 
 The pipeline consists of a multibranch pipeline job named [cloud-image-builder](https://jenkins-kubevirt.apps.ci.centos.org/job/cloud-image-builder/)
-that listens for pull requests to be opened on the repository. If a pull 
-request contains changes to an AWS related file, the [centos-aws-image-build](https://jenkins-kubevirt.apps.ci.centos.org/job/centos-aws-image-build/)
-job is started. If a pull request contains changes to a GCP related file, 
-the [centos-gcp-image-build](https://jenkins-kubevirt.apps.ci.centos.org/job/centos-gcp-image-build/)
-job is started.
+that listens for pull requests to be opened on the repository. When a pull request is opened a pipeline job is created and initiated.
+Also, when a commit is pushed to an open pull request, the corresponding pipeline job runs. The pipeline job runs a build 
+for each configured image in parallel. Currently it builds a CentOS image for GCP and AWS.
 
 ### cloud-image-builder
-The cloud-image-builder job consists of three stages. The first stage 
-called run-tests serves as a wrapper to run the next two stages in 
-parallel. The wrapped stages are centos-aws and centos-gcp. centos-aws 
-listens for changes to any file containing ec2, aws or ami. If it 
-detects a change, it first sets variables related to the change author, 
-change branch and aws instance name. It then reads the file environment.aws 
-and passes the variables contained in that file to the 
-centos-aws-image-build job.
+The cloud-image-builder job consists of Four stages. The first stage 
+called prepare-environment loads all variables related to each image. The next stage, build-image invokes packer to build the
+respective image for the environment. After that the test-image stage is called. This stage runs an ansible playbook that contains 
+tests for each image. The final stage is deploy-image. This stage runs an ansible playbook to publish the image. This stage only
+runs if a tag was pushed to the repository.
 
-### centos-aws
-The centos-aws job starts off by initializing a pod in Openshift with 
-one container called ansible-executor. Then it starts it's first of 
-three stages. The first stage builds an AMI using packer and then records 
-the ami instance id. The next stage runs tests against the image using 
-ansible. Once the job completes successfully or in error the third stage 
-is run that cleans up the AMI.
+### Jenkins jobs
+There is a Jenkins job for the master branch, a job for each PR and a job for each git tag.
+#### master branch job
+This job runs on each merge to master.
+#### PR jobs
+This job runs on each opened PR and each commit to the PR. The job checks out the PR and merges it with the master branch
+and then runs through each testing phase.
+#### Tag jobs
+This job is created when a new tag is pushed to the repository. The job will only run when manually invoked.
+
+### Publishing images
+
 
 ### Pipeline metrics
 Basic metrics for each jenkins job can be viewed here. [Metrics](http://grafana-continuous-infra.apps.ci.centos.org/d/adsyE4Kmk/kubevirt-image-builder)
