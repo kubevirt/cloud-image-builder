@@ -38,7 +38,7 @@
         source_region: us-east-1
         region: "{{ item }}"
         source_image_id: "{{ aws_ami }}"
-        wait: yes
+        wait: no
         wait_timeout: 1200  # Default timeout is 600
         name: "{{ source_ami_details.name }}"
         tags: "{{ source_ami_details.tags }}"
@@ -49,7 +49,6 @@
         - us-west-2
         - ap-northeast-1
         - ap-northeast-2
-        - ap-northeast-3
         - ap-south-1
         - ap-southeast-1
         - ap-southeast-2
@@ -59,7 +58,17 @@
         - eu-west-2
         - eu-west-3
         - sa-east-1
-        
+
+    - name: wait for published AMIs to be available
+      ec2_ami_facts:
+        image_id: "{{ item.image_id }}"
+        region: "{{ item.item }}"
+      register: ami_info
+      until: ami_info['images'][0]['state'].find("available") != -1
+      retries: 30
+      delay: 60
+      with_items: "{{ published_ami_ids.results }}"
+
     - name: make published AMIs public
       ec2_ami:
         image_id: "{{ item.image_id }}"
