@@ -8,9 +8,6 @@ if [ ! -d kubevirt-ansible ]; then
 
   # TODO: Remove after kubevirt-ansible has moved to 0.8.0.
   sed -i 's@version: 0.8.0-alpha.1@version: 0.8.0@' kubevirt-ansible/vars/all.yml
-  # TODO: Remove after it has been added to kubevirt-ansible.
-  # New parameter added with 0.8.0-alpha.0
-  echo "image_pull_policy: IfNotPresent" >> kubevirt-ansible/roles/kubevirt/defaults/main.yml
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
