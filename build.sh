@@ -7,10 +7,7 @@ if [ ! -d kubevirt-ansible ]; then
   sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
   # TODO: Remove after kubevirt-ansible has moved to 0.8.0.
-  sed -i 's@version: 0.7.0@version: 0.8.0-alpha.1@' kubevirt-ansible/vars/all.yml
-  # TODO: Remove after it has been added to kubevirt-ansible.
-  # New parameter added with 0.8.0-alpha.0
-  echo "image_pull_policy: IfNotPresent" >> kubevirt-ansible/roles/kubevirt/defaults/main.yml
+  sed -i 's@version: 0.8.0-alpha.1@version: 0.8.0@' kubevirt-ansible/vars/all.yml
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
