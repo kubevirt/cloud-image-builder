@@ -91,11 +91,25 @@
   vars:
     user: "centos"
     bucket: "kubevirt-button"
-    version: "v0.7.1"
+    version: "tbd"
   user: centos
   become: True
   gather_facts: True
   tasks:
+    - name: copy kubevirt-version
+      copy:
+        src: kubevirt-version
+        dest: "/home/{{ user }}/kubevirt-version"
+        owner: "{{ user }}"
+        group: centos
+
+    - name: read kubevirt-version file
+      shell: cat kubevirt-version
+      register: kubevirt_version
+      
+    - name: set version variable
+      set_fact: version="{{ kubevirt_version.stdout }}"
+
     - name: Copy Publisher Script
       template:
         src: gcp-image-publish.sh.j2
