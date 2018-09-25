@@ -60,7 +60,7 @@ gcloud compute images export --destination-uri gs://$BUCKET/$VERSION.tar.gz --im
 Cloud-image-builder releases mirror KubeVirt releases. When a new version
 of Kubevirt is released, we initiate a build on the master branch here: https://jenkins-kubevirt.apps.ci.centos.org/blue/organizations/jenkins/cloud-image-builder/branches
 If the build succeeds and KUBEVIRT_VERSION in pipeline.log matches the
-new version then we can proceed to tag a new release.
+new version then we can proceed to branch and tag a new release.
 
 If the build fails then the failure needs to be triaged and fixed before 
 creating a new release tag. If KUBERVIRT_VERSION in pipeline.log does not
@@ -70,11 +70,22 @@ until kubevirt-ansible is updated or we make modifications to build.sh
 to set the version number.
 
 After we have validated that the new KubeVirt version is working in our
-CI build and test, then we create a new version tag for cloud-image-builder.
+CI build and test, we create a new release branch with the name "release-<version number>"
+matching the KubeVirt release branch name, e.g. "release-0.8". Then we 
+also create a new version tag based off the new release branch with the 
+version number as its name, e.g. "v0.8.0-1".
 
 Tagging creates a new branch in Jenkins. The CI build does not start
 automatically for the new branch. An admin must initiate the build for the
 branch here: https://jenkins-kubevirt.apps.ci.centos.org/blue/organizations/jenkins/cloud-image-builder/branches
+Start the build matching the version tag name. Monitor the release build
+and see that it passes. When it is complete you should be able to see
+a new public AMI in all AWS regions and a new file in the "kubevirt-button" 
+GCP bucket.
+
+Finally, the AWS page on kubevirt.io will need to be updated 
+so that it points to the new AMIs. The value for "Cloud storage file:" 
+on the GCP page also needs to be updated with the new version number.
 
 ## Pipeline
 [Jenkins Pipeline](https://jenkins-kubevirt.apps.ci.centos.org/)
