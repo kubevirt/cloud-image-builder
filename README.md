@@ -83,9 +83,9 @@ and see that it passes. When it is complete you should be able to see
 a new public AMI in all AWS regions and a new file in the "kubevirt-button" 
 GCP bucket.
 
-Finally, the AWS page on kubevirt.io will need to be updated 
+Finally, the [EC2 page](https://github.com/kubevirt/kubevirt.github.io/blob/master/pages/ec2.md) on [kubevirt.io](http://kubevirt.io) will need to be updated 
 so that it points to the new AMIs. The value for "Cloud storage file:" 
-on the GCP page also needs to be updated with the new version number.
+on the [GCP page](https://github.com/kubevirt/kubevirt.github.io/blob/master/pages/gcp.md) also needs to be updated with the new version number.
 
 ## Pipeline
 [Jenkins Pipeline](https://jenkins-kubevirt.apps.ci.centos.org/)
@@ -163,7 +163,7 @@ Kubernetes and KubeVirt the first time the instance is started, and which
 will be configured with the correct hostname.
 
 Once the build finishes, note the AMI id. We will use it in the verification step.
-In the case of Gcp, you can set the image name in the environment file
+In the case of GCP, you can set the image name in the environment file
 
 ## Execute Test Manually
 
