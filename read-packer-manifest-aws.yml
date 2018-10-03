@@ -1,0 +1,14 @@
+- name: read build artifact
+  include_vars:
+    file: packer-build-manifest-aws.json
+    name: build_artifact
+
+- name: print ami_id
+  set_fact: region_ami_ids={{ build_artifact['builds'][0].artifact_id }}
+
+- name: print
+  debug: var=region_ami_ids
+
+- name: set region and ami_id
+  set_fact: aws_region={{ region_ami_ids.split(':')[0] }}
+  set_fact: aws_ami={{ region_ami_ids.split(':')[1] }}
