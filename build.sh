@@ -6,8 +6,8 @@ if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
   sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
-  # TODO: Remove after kubevirt-ansible has moved to 0.8.0.
-  sed -i 's@version: 0.8.0-alpha.1@version: 0.8.0@' kubevirt-ansible/vars/all.yml
+  #Remove when this PR is merge: https://github.com/kubevirt/kubevirt-ansible/pull/399
+  echo "  when: cli.stdout == \"oc\"" >> kubevirt-ansible/roles/cdi/tasks/provision.yml
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
