@@ -4,6 +4,15 @@ cd $KUBEVIRT_ANSIBLE_DIR
 echo "[masters]" >> inventory-aws
 hostname >> inventory-aws
 
+# make sure we use a weave network that doesnt conflict
+for num in `seq 30 50` ; do
+ ip r | grep -q 172.$num
+ if [ "$?" != "0" ] ; then
+  sed -i "s/172.30/172.$num/" playbooks/roles/kubernetes-master/vars/main.yml
+  break
+ fi
+done
+
 sudo ansible-playbook playbooks/cluster/kubernetes/cluster-localhost.yml --connection=local -i inventory-aws
 
 # enable kubectl for centos user
