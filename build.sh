@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -x
 
-cd image-files
 if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
   sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
@@ -10,15 +9,13 @@ if [ ! -d kubevirt-ansible ]; then
   echo "  when: cli.stdout == \"oc\"" >> kubevirt-ansible/roles/cdi/tasks/provision.yml
 
   #TODO: remove when PR to update multus config to use weave-net instead of flannel is merged
-  cp multus-config.yml kubevirt-ansible/roles/network-multus/defaults/main.yml
+  cp image-files/multus-config.yml kubevirt-ansible/roles/network-multus/defaults/main.yml
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
 [ -f virtctl ] || curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/virtctl-v$KUBEVIRT_VERSION-linux-amd64
 chmod +x virtctl
 
-cp cluster-localhost.yml kubevirt-ansible/playbooks/cluster/kubernetes
-cd ..
 echo $KUBEVIRT_VERSION > kubevirt-version
 pwd
 

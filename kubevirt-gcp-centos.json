@@ -27,68 +27,35 @@
   ],
   "provisioners": [
     {
-      "type": "file",
-      "source": "image-files/kubevirt-ansible",
-      "destination": "/home/centos"
+      "type": "shell-local",
+      "command": "tar czf ./image-files/kubevirt-ansible.tar.gz kubevirt-ansible"
     },
     {
       "type": "file",
-      "source": "image-files/cluster-wait.yml",
+      "source": "image-files",
       "destination": "/home/centos/"
     },
     {
-      "type": "file",
-      "source": "image-files/virtctl",
-      "destination": "/home/centos/"
-    },
-    {
-      "type": "file",
-      "source": "image-files/kubevirt-installer.service",
-      "destination": "/home/centos/"
+      "type": "shell-local",
+      "command": "rm ./image-files/kubevirt-ansible.tar.gz"
     },
     {
       "type": "shell",
-      "inline": "sudo mv /home/centos/kubevirt-installer.service /usr/lib/systemd/system/"
-    },
-    {
-      "type": "file",
-      "source": "image-files/first-boot-centos.sh",
-      "destination": "/home/centos/first-boot.sh"
-    },
-    {
-      "type": "shell",
-      "inline": "sudo mv /home/centos/first-boot.sh /usr/local/bin/"
-    },
-    {
-      "type": "shell",
-      "inline": "sudo systemctl daemon-reload"
-    },
-    {
-      "type": "shell",
-      "inline": "sudo systemctl enable kubevirt-installer"
-    },
-    {
-      "type": "shell",
-      "inline": "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit wget git"
-    },
-    {
-      "type": "shell",
-      "inline": "sudo yum update -y"
-    },
-    {
-      "type": "file",
-      "source": "image-files/motd.j2",
-      "destination": "/home/centos/"
-    },
-    {
-      "type": "file",
-      "source": "image-files/motd.yml",
-      "destination": "/home/centos/"
-    },
-    {
-      "type": "file",
-      "source": "image-files/emulation-configmap.yaml",
-      "destination": "/home/centos/"
+      "inline": [
+        "mv image-files/* .",
+        "rmdir image-files",
+        "tar xzf kubevirt-ansible.tar.gz",
+        "rm kubevirt-ansible.tar.gz",
+        "sudo mv /home/centos/kubevirt-installer.service /usr/lib/systemd/system/",
+        "sudo mv /home/centos/first-boot-centos.sh /usr/local/bin/first-boot.sh",
+        "mv cluster-localhost.yml kubevirt-ansible/playbooks/cluster/kubernetes",
+        "sudo systemctl daemon-reload",
+        "sudo systemctl enable kubevirt-installer",
+        "sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm",
+        "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit wget git",
+        "sudo yum update -y",
+        "rm multus-config.yml"
+      ]
     }
   ],
   "post-processors": [
