@@ -34,12 +34,25 @@
       retries: 12
       delay: 5
 
-    - name: deploy cirros vmi
-      command: kubectl apply -f /home/centos/tests/cirros-vmi.yaml
+    - name: deploy cirros vm
+      command: kubectl apply -f /home/centos/tests/cirros-vm.yaml
+
+    - name: use virtctl to start VM
+      command: /home/centos/virtctl start cirros-vm
 
     - name: wait for cirros vm to be Running
       shell: kubectl describe vmi cirros-vm | grep Phase
       register: cirros_vm_status
       until: cirros_vm_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+    - name: use virtctl to stop VM
+      command: /home/centos/virtctl stop cirros-vm
+
+    - name: wait for cirros vmi to be removed
+      shell: kubectl get vmi
+      register: cirros_vm_status
+      until: cirros_vm_status.stderr.find("No resources") != -1
       retries: 30
       delay: 10

@@ -13,8 +13,10 @@ if [ ! -d kubevirt-ansible ]; then
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
+cd image-files
 [ -f virtctl ] || curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/virtctl-v$KUBEVIRT_VERSION-linux-amd64
 chmod +x virtctl
+cd ..
 
 echo $KUBEVIRT_VERSION > kubevirt-version
 pwd
