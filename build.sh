@@ -7,9 +7,6 @@ if [ ! -d kubevirt-ansible ]; then
 
   #Remove when this PR is merge: https://github.com/kubevirt/kubevirt-ansible/pull/399
   echo "  when: cli.stdout == \"oc\"" >> kubevirt-ansible/roles/cdi/tasks/provision.yml
-
-  #TODO: remove when PR to update multus config to use weave-net instead of flannel is merged
-  cp image-files/multus-config.yml kubevirt-ansible/roles/network-multus/defaults/main.yml
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
