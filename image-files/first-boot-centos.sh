@@ -22,13 +22,16 @@ export KUBECONFIG=/home/centos/admin.conf
 echo "export KUBECONFIG=~/admin.conf" >> /home/centos/.bash_profile
 
 # wait for kubernetes cluster to be up
-sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local 
+sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local
 
 # enable software emulation
 grep -q -E 'vmx|svm' /proc/cpuinfo || kubectl apply -f /home/centos/emulation-configmap.yaml
 
 # deploy kubevirt
 sudo ansible-playbook playbooks/kubevirt.yml -e@vars/all.yml -e cluster=kubernetes --connection=local -i inventory-aws
+
+# remove CDI because users will create it as a lab exercise
+kubectl delete -f /tmp/cdi-provision.yml
 
 # generate motd
 cd /home/centos
