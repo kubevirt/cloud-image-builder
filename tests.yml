@@ -15,10 +15,12 @@
       command: kubectl apply -f /home/centos/tests/storage-setup.yaml
 
     - name: create cdi provisioner
-      command: kubectl apply -f /home/centos/tests/cdi-controller-deployment.yaml
+      command: ansible-playbook -i inventory-aws -e apb_action=provision -e cdi_image_namespace=golden --connection=local playbooks/cdi.yml
+      args:
+        chdir: /home/centos/kubevirt-ansible
 
     - name: wait for cdi-deployment pod to become Running
-      shell: kubectl get pods | grep cdi-deployment
+      shell: kubectl get pods -n golden | grep cdi-deployment
       register: cdi_deployment_status
       until: cdi_deployment_status.stdout.find("Running") != -1
       retries: 30
