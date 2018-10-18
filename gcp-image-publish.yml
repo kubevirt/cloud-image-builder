@@ -19,9 +19,21 @@
     - name: Set Push Button Image Name
       set_fact: image={{ build_artifact['builds'][0].artifact_id }}
 
+    - name: Set instance name
+      set_fact: publisher_instance_name="{{ image }}-uploader-instance"
+
+    - name: delete uploader instance if it already exists
+      gce:
+         instance_names: "{{ publisher_instance_name }}"
+         zone: "{{ zone }}"
+         state: absent
+         service_account_email: "{{ service_account_email }}"
+         credentials_file: "{{ credentials_file }}"
+         project_id: "{{ project_id }}"
+
     - name: Provision the uploader instance
       gce:
-         instance_names: uploader-instance
+         instance_names: "{{ publisher_instance_name }}"
          zone: "{{ zone }}"
          machine_type: "{{ machine_type }}"
          image: centos-7
@@ -30,28 +42,44 @@
          service_account_email: "{{ service_account_email }}"
          credentials_file: "{{ credentials_file }}"
          project_id: "{{ project_id }}"
-         disk_size: 100
+         disk_size: 30
          persistent_boot_disk: True
          service_account_permissions:
          - storage-rw
          metadata: '{"ssh-keys": "{{ user }}: {{ ssh_public_key }}"}'
       register: gce
 
-    -  name: Add kubevirt-button disk
+    -  name: Remove image disk if it already exists
        gce_pd:
-        instance_name: uploader-instance
+        name: "{{ image }}-source-disk"
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        state: "absent"
+
+    -  name: Add image disk
+       gce_pd:
+        instance_name: "{{ publisher_instance_name }}"
         image: "{{ image }}"
-        name: image-disk
+        name: "{{ image }}-source-disk"
         size_gb: 30
         service_account_email: "{{ service_account_email }}"
         credentials_file: "{{ credentials_file }}"
         project_id: "{{ project_id }}"
 
+    -  name: Remove temporary disk if it already exists
+       gce_pd:
+        name: "{{ image }}-temporary-disk"
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        state: "absent"
+
     -  name: Add Temporary disk for uploading
        gce_pd:
-        instance_name: uploader-instance
-        size_gb: 100
-        name: temporary-disk
+        instance_name: "{{ publisher_instance_name }}"
+        size_gb: 35
+        name: "{{ image }}-temporary-disk"
         service_account_email: "{{ service_account_email }}"
         credentials_file: "{{ credentials_file }}"
         project_id: "{{ project_id }}"
@@ -106,7 +134,7 @@
     - name: read kubevirt-version file
       shell: cat kubevirt-version
       register: kubevirt_version
-      
+
     - name: set version variable
       set_fact: version="v{{ kubevirt_version.stdout }}"
 
@@ -120,3 +148,39 @@
 
     - name: Launch Publisher Script
       command: "/home/{{ user }}/gcp-image-publish.sh"
+
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  vars:
+    user: "centos"
+    machine_type: "{{ lookup('env', 'MACHINE_TYPE') }}"
+    credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
+    project_id: "{{ lookup('env', 'PROJECT_ID') }}"
+    zone: "{{ lookup('env', 'ZONE') }}"
+    service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
+  tasks:
+    - name: delete uploader instance
+      gce:
+         instance_names: "{{ publisher_instance_name }}"
+         zone: "{{ zone }}"
+         state: absent
+         service_account_email: "{{ service_account_email }}"
+         credentials_file: "{{ credentials_file }}"
+         project_id: "{{ project_id }}"
+
+    -  name: Remove image disk
+       gce_pd:
+        name: "{{ image }}-source-disk"
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        state: "absent"
+
+    -  name: Remove temporary disk
+       gce_pd:
+        name: "{{ image }}-temporary-disk"
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        state: "absent"
