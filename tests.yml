@@ -6,13 +6,13 @@
   tasks:
     - name: copy yaml files
       copy:
-        src: ./tests/
-        dest: /home/centos/tests/
+        src: ./manifests/
+        dest: /home/centos/manifests/
         owner: centos
         group: centos
 
     - name: create hostpath storage class
-      command: kubectl apply -f /home/centos/tests/storage-setup.yaml
+      command: kubectl apply -f /home/centos/manifests/storage-setup.yaml
 
     - name: create cdi provisioner
       command: ansible-playbook -i inventory-aws -e apb_action=provision -e cdi_image_namespace=golden --connection=local playbooks/cdi.yml
@@ -27,7 +27,7 @@
       delay: 10
 
     - name: deploy pvc
-      command: kubectl apply -f /home/centos/tests/cirros-pvc.yaml
+      command: kubectl apply -f /home/centos/manifests/cirros-pvc.yaml
 
     - name: wait for cirros-pvc to become Bound
       shell: kubectl get pvc | grep cirros-pvc
@@ -37,7 +37,7 @@
       delay: 5
 
     - name: deploy cirros vm
-      command: kubectl apply -f /home/centos/tests/cirros-vm.yaml
+      command: kubectl apply -f /home/centos/manifests/cirros-vm.yaml
 
     - name: use virtctl to start VM
       command: /home/centos/virtctl start cirros-vm
