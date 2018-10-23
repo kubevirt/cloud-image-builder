@@ -1,0 +1,83 @@
+# Tests for lab 2: http://kubevirt.io/labs/kubernetes/lab2
+- name: Run lab 2 tests
+  hosts: launched
+  user: centos
+  become: True
+  gather_facts: True
+  tasks:
+    # Tests for lab 2 CDI
+    - name: create hostpath storage class
+      command: kubectl apply -f https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/labs/manifests/storage-setup.yml
+
+    - name: create cdi
+      command: kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.3.0/cdi-controller.yaml
+
+    - name: wait for cdi-deployment pod to become Running
+      shell: kubectl get pods -n kube-system | grep cdi-deployment
+      register: cdi_deployment_status
+      until: cdi_deployment_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+    - name: deploy fedora pvc
+      command: kubectl apply -f https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/labs/manifests/pvc_fedora.yml
+
+    - name: wait for fedora pvc to become Bound
+      shell: kubectl get pvc | grep fedora
+      register: fedora_pvc_status
+      until: fedora_pvc_status.stdout.find("Bound") != -1
+      retries: 12
+      delay: 5
+
+    - name: wait for importer pod to start running
+      shell: kubectl get pods | grep importer-fedora
+      register: fedora_importer_status
+      until: fedora_importer_status.stdout.find("Running") != -1
+      retries: 12
+      delay: 5
+
+    - name: wait for importer pod to succeed
+      shell: kubectl describe pvc fedora | grep "cdi.kubevirt.io/storage.pod.phase"
+      register: fedora_importer_status
+      until: fedora_importer_status.stdout.find("Succeeded") != -1
+      retries: 12
+      delay: 5
+
+    - name: create fedora vm
+      command: kubectl create -f https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/labs/manifests/vm1_pvc.yml
+
+    - name: wait for fedora vm to be Running
+      shell: kubectl describe vmi vm1 | grep Phase
+      register: vm1_status
+      until: vm1_status.stdout.find("Running") != -1
+      retries: 30
+      delay: 10
+
+    - name: use virtctl to stop VM
+      command: /home/centos/virtctl stop vm1
+
+    - name: delete vm1
+      command: kubectl delete vm vm1
+
+    - name: wait for fedora vmi to be removed
+      shell: kubectl get vmi
+      register: vm1_status
+      until: vm1_status.stderr.find("No resources") != -1
+      retries: 30
+      delay: 10
+
+    - name: delete fedora pvc
+      command: kubectl delete pvc fedora
+
+    - name: wait for fedora pvc to be removed
+      shell: kubectl get pvc
+      register: pvc_status
+      until: pvc_status.stdout.find("fedora") == -1
+      retries: 30
+      delay: 10
+
+    - name: delete cdi
+      command: kubectl delete -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.3.0/cdi-controller.yaml
+
+    - name: delete hostpath storage class
+      command: kubectl delete -f https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/labs/manifests/storage-setup.yml

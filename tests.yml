@@ -58,3 +58,11 @@
       until: cirros_vm_status.stderr.find("No resources") != -1
       retries: 30
       delay: 10
+
+    - name: remove cdi
+      command: kubectl delete -f /tmp/cdi-provision.yml
+
+    - name: remove hostpath storage class
+      command: kubectl delete -f /home/centos/manifests/storage-setup.yaml
+
+- include: test-lab2.yml
