@@ -10,7 +10,7 @@
       command: kubectl apply -f https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/labs/manifests/storage-setup.yml
 
     - name: create cdi
-      command: kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.2.0/cdi-controller.yaml
+      command: kubectl apply -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.3.0/cdi-controller.yaml
 
     - name: wait for cdi-deployment pod to become Running
       shell: kubectl get pods -n kube-system | grep cdi-deployment
@@ -56,6 +56,9 @@
     - name: use virtctl to stop VM
       command: /home/centos/virtctl stop vm1
 
+    - name: delete vm1
+      command: kubectl delete vm vm1
+
     - name: wait for fedora vmi to be removed
       shell: kubectl get vmi
       register: vm1_status
@@ -67,14 +70,14 @@
       command: kubectl delete pvc fedora
 
     - name: wait for fedora pvc to be removed
-      shell: kubectl get pvc fedora
+      shell: kubectl get pvc
       register: pvc_status
-      until: pvc_status.stderr.find("No resources") != -1
+      until: pvc_status.stdout.find("fedora") == -1
       retries: 30
       delay: 10
 
     - name: delete cdi
-      command: kubectl delete -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.2.0/cdi-controller.yaml
+      command: kubectl delete -f https://github.com/kubevirt/containerized-data-importer/releases/download/v1.3.0/cdi-controller.yaml
 
     - name: delete hostpath storage class
       command: kubectl delete -f https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/labs/manifests/storage-setup.yml
