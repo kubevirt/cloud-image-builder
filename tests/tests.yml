@@ -1,0 +1,2 @@
+- include: use-kubevirt-lab.yml
+- include: cdi-lab.yml

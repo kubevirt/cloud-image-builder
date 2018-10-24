@@ -62,4 +62,4 @@
       with_items: "{{ z_ssh_known_host_results.results }}"
       when: item.stdout == ""
 
-- include: tests.yml
+- include: tests/tests.yml

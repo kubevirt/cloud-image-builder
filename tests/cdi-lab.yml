@@ -1,5 +1,5 @@
 # Tests for lab 2: http://kubevirt.io/labs/kubernetes/lab2
-- name: Run lab 2 tests
+- name: CDI lab tests
   hosts: launched
   user: centos
   become: True
