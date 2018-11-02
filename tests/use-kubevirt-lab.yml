@@ -4,63 +4,35 @@
   become: True
   gather_facts: True
   tasks:
-    - name: copy yaml files
-      copy:
-        src: ../manifests/
-        dest: /home/centos/manifests/
-        owner: centos
-        group: centos
+    - name: read in lab variables
+      include_vars:
+        file: labs_kubernetes_variables.yml
+        name: labs_vars
 
-    - name: create hostpath storage class
-      command: kubectl apply -f /home/centos/manifests/storage-setup.yaml
+    - debug: var=labs_vars
 
-    - name: create cdi provisioner
-      command: ansible-playbook -i inventory-aws -e apb_action=provision -e cdi_image_namespace=golden --connection=local playbooks/cdi.yml
-      args:
-        chdir: /home/centos/kubevirt-ansible
-
-    - name: wait for cdi-deployment pod to become Running
-      shell: kubectl get pods -n golden | grep cdi-deployment
-      register: cdi_deployment_status
-      until: cdi_deployment_status.stdout.find("Running") != -1
-      retries: 30
-      delay: 10
-
-    - name: deploy pvc
-      command: kubectl apply -f /home/centos/manifests/cirros-pvc.yaml
-
-    - name: wait for cirros-pvc to become Bound
-      shell: kubectl get pvc | grep cirros-pvc
-      register: cirros_pvc_status
-      until: cirros_pvc_status.stdout.find("Bound") != -1
-      retries: 12
-      delay: 5
-
-    - name: deploy cirros vm
-      command: kubectl apply -f /home/centos/manifests/cirros-vm.yaml
+    - name: create vm
+      command: kubectl apply -f {{ labs_vars.use_kubevirt_lab.vm_manifest }}
 
     - name: use virtctl to start VM
-      command: /home/centos/virtctl start cirros-vm
+      command: /home/centos/virtctl start {{ labs_vars.use_kubevirt_lab.vm_name }}
 
-    - name: wait for cirros vm to be Running
-      shell: kubectl describe vmi cirros-vm | grep Phase
-      register: cirros_vm_status
-      until: cirros_vm_status.stdout.find("Running") != -1
+    - name: wait for vm to be Running
+      shell: kubectl describe vmi {{ labs_vars.use_kubevirt_lab.vm_name }} | grep Phase
+      register: vm_status
+      until: vm_status.stdout.find("Running") != -1
       retries: 30
       delay: 10
 
     - name: use virtctl to stop VM
-      command: /home/centos/virtctl stop cirros-vm
+      command: /home/centos/virtctl stop  {{ labs_vars.use_kubevirt_lab.vm_name }}
 
-    - name: wait for cirros vmi to be removed
+    - name: wait for vmi to be removed
       shell: kubectl get vmi
-      register: cirros_vm_status
-      until: cirros_vm_status.stderr.find("No resources") != -1
+      register: vm_status
+      until: vm_status.stderr.find("No resources") != -1
       retries: 30
       delay: 10
 
-    - name: remove cdi
-      command: kubectl delete -f /tmp/cdi-provision.yml
-
-    - name: remove hostpath storage class
-      command: kubectl delete -f /home/centos/manifests/storage-setup.yaml
+    - name: cleanup vm
+      command: kubectl delete -f {{ labs_vars.use_kubevirt_lab.vm_manifest }}
