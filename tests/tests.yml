@@ -1,2 +1,3 @@
 - include: use-kubevirt-lab.yml
 - include: cdi-lab.yml
+- include: test-instance-shutdown.yml

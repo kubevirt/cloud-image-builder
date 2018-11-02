@@ -8,6 +8,23 @@
     zone: "{{ lookup('env', 'ZONE') }}"
     service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
   tasks:
+    - name: wait for instance to shutdown
+      gcp_compute_instance_facts:
+        zone: "{{ zone }}"
+        filters:
+          - name = "{{ gcp_instance_name }}"
+        auth_kind: "serviceaccount"
+        service_account_file: "{{ credentials_file }}"
+        project: "{{ project_id }}"
+        scopes:
+          - https://www.googleapis.com/auth/compute
+      register: instance_status
+      until: instance_status['items'][0].status.find("TERMINATED") != -1
+      retries: 60
+      delay: 15
+
+    - debug: var=instance_status
+
     - name: Delete the test instance
       gce:
          instance_names: "{{ gcp_instance_name }}"
