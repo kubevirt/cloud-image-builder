@@ -1,4 +1,4 @@
-- name: Run tests on instance
+- name: run use kubevirt lab tests
   hosts: launched
   user: centos
   become: True
@@ -6,7 +6,7 @@
   tasks:
     - name: copy yaml files
       copy:
-        src: ./manifests/
+        src: ../manifests/
         dest: /home/centos/manifests/
         owner: centos
         group: centos
@@ -64,5 +64,3 @@
 
     - name: remove hostpath storage class
       command: kubectl delete -f /home/centos/manifests/storage-setup.yaml
-
-- include: test-lab2.yml
