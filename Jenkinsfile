@@ -84,6 +84,7 @@ images.each { imageName, imageValues ->
 
                     stage("test-image-${imageName}") {
                         def cmd = """
+                        sudo dnf -y install python2-boto python2-boto3
                         mkdir -p ~/.ssh
                         ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK}
                         """
@@ -111,6 +112,7 @@ images.each { imageName, imageValues ->
                 } finally {
                     stage("cleanup-image-${imageName}") {
                         def cmd = """
+                        sudo dnf -y install python2-boto python2-boto3
                         ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
                         """
 
