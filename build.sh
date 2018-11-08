@@ -7,6 +7,9 @@ if [ ! -d kubevirt-ansible ]; then
 
   #Remove when this PR is merge: https://github.com/kubevirt/kubevirt-ansible/pull/399
   echo "  when: cli.stdout == \"oc\"" >> kubevirt-ansible/roles/cdi/tasks/provision.yml
+
+  #Fix for missing {{ }}
+  sed -i "s/weavenet.stdout/\"{{ weavenet.stdout }}\"/" kubevirt-ansible/roles/kubernetes-master/tasks/main.yml
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
