@@ -3,6 +3,11 @@ set -x
 
 if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
+  cd kubevirt-ansible
+  git fetch origin
+  git checkout release-0.8
+  cd ..
+
   sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
   #Remove when this PR is merge: https://github.com/kubevirt/kubevirt-ansible/pull/399
