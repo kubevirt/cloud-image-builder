@@ -1,0 +1,19 @@
+- name: check that KubeVirt pods are up before running tests
+  hosts: launched
+  user: centos
+  become: True
+  gather_facts: True
+  tasks:
+    - name: wait for virt-api pod to be running
+      shell: kubectl get pods -n kube-system | grep virt-api
+      register: virt_api_pod_status
+      until: virt_api_pod_status.stdout.find("Running") != -1
+      retries: 12
+      delay: 5
+
+    - name: wait for virt-controller pod to be running
+      shell: kubectl get pods -n kube-system | grep virt-controller
+      register: virt_controller_pod_status
+      until: virt_controller_pod_status.stdout.find("Running") != -1
+      retries: 12
+      delay: 5
