@@ -3,18 +3,21 @@ set -x
 
 if [ ! -d kubevirt-ansible ]; then
   git clone https://github.com/kubevirt/kubevirt-ansible
-  cd kubevirt-ansible
-  git fetch origin
-  git checkout release-0.8
-  cd ..
 
   sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
   #Remove when this PR is merge: https://github.com/kubevirt/kubevirt-ansible/pull/399
   echo "  when: cli.stdout == \"oc\"" >> kubevirt-ansible/roles/cdi/tasks/provision.yml
 
+  # set specific kubevirt version
+  sed -i 's@version: 0.9.3@version: 0.10.0@' kubevirt-ansible/vars/all.yml
+
   #Fix for missing {{ }}
   sed -i "s/weavenet.stdout/\"{{ weavenet.stdout }}\"/" kubevirt-ansible/roles/kubernetes-master/tasks/main.yml
+
+  # Fix for bad determination of openshift environment
+  cp ./image-files/kubevirt.yml kubevirt-ansible/playbooks
+  cp ./image-files/provision.yml kubevirt-ansible/roles/kubevirt/tasks
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
