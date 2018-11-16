@@ -6,7 +6,7 @@
         url: https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/5ef9e91f52b65f54635a54dbbbefb5f00cc2f209/_data/labs_kubernetes_variables.yml
         dest: ./labs_kubernetes_variables.yml
 
-- include: pods-check.yml
+- include: pretest-checks.yml
 - include: use-kubevirt-lab.yml
 - include: cdi-lab.yml
 - include: test-instance-shutdown.yml
