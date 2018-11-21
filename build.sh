@@ -16,8 +16,8 @@ if [ ! -d kubevirt-ansible ]; then
   sed -i "s/weavenet.stdout/\"{{ weavenet.stdout }}\"/" kubevirt-ansible/roles/kubernetes-master/tasks/main.yml
 
   # Fix for bad determination of openshift environment
-  cp ./image-files/kubevirt.yml kubevirt-ansible/playbooks
-  cp ./image-files/provision.yml kubevirt-ansible/roles/kubevirt/tasks
+  cp ./patches/kubevirt.yml kubevirt-ansible/playbooks
+  cp ./patches/provision.yml kubevirt-ansible/roles/kubevirt/tasks
 fi
 
 export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | grep -v _ver | cut -f 2 -d ' ')
