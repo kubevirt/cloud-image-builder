@@ -31,3 +31,14 @@
       until: services_status.stdout.find("virt-api") != -1
       retries: 12
       delay: 5
+
+    - name: query virt-api's clusterIP
+      shell: kubectl get services virt-api -n kube-system  -o yaml | grep clusterIP | cut -f 4 -d " "
+      register: virt_api_cluster_ip
+
+    - debug: var=virt_api_cluster_ip
+
+    - name: wait for virt_api port 443 to be open
+      wait_for:
+        host: "{{ virt_api_cluster_ip.stdout }}"
+        port: 443
