@@ -27,33 +27,22 @@
   ],
   "provisioners": [
     {
-      "type": "shell-local",
-      "command": "tar czf ./image-files/kubevirt-ansible.tar.gz kubevirt-ansible"
-    },
-    {
       "type": "file",
       "source": "image-files",
       "destination": "/home/centos/"
-    },
-    {
-      "type": "shell-local",
-      "command": "rm ./image-files/kubevirt-ansible.tar.gz"
     },
     {
       "type": "shell",
       "inline": [
         "mv image-files/* .",
         "rmdir image-files",
-        "tar xzf kubevirt-ansible.tar.gz",
-        "rm kubevirt-ansible.tar.gz",
         "sudo mv /home/centos/kubevirt-installer.service /usr/lib/systemd/system/",
         "sudo mv /home/centos/first-boot-centos.sh /usr/local/bin/first-boot.sh",
-        "mv cluster-localhost.yml kubevirt-ansible/playbooks/cluster/kubernetes",
+        "sudo mv /home/centos/kubernetes.repo /etc/yum.repos.d",
         "sudo systemctl daemon-reload",
         "sudo systemctl enable kubevirt-installer",
         "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit wget git",
-        "sudo yum update -y",
-        "rm multus-config.yml"
+        "sudo yum update -y"
       ]
     }
   ],
