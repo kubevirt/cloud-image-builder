@@ -21,8 +21,6 @@ export KUBEVIRT_VERSION=$(cat kubevirt-ansible/vars/all.yml | grep version | gre
 cd image-files
 [ -f virtctl ] || curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/virtctl-v$KUBEVIRT_VERSION-linux-amd64
 chmod +x virtctl
-
-cp ../tests/pretest-checks.yml .
 cd ..
 
 echo $KUBEVIRT_VERSION > kubevirt-version
