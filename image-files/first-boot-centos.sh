@@ -31,9 +31,8 @@ grep -q -E 'vmx|svm' /proc/cpuinfo || kubectl apply -f /home/centos/emulation-co
 sudo ansible-playbook playbooks/kubevirt.yml -e@vars/all.yml -e cluster=kubernetes --connection=local -i inventory-aws
 
 # validate kubevirt pods and services are up
-cd /home/centos
-sudo ansible-playbook pretest-checks.yml --connection=local -i inventory-aws
-rm pretest-checks.yml
+mv /home/centos/after-install-checks.yml .
+sudo ansible-playbook after-install-checks.yml --connection=local -i inventory-aws
 
 # remove CDI because users will create it as a lab exercise
 kubectl delete -f /tmp/cdi-provision.yml
