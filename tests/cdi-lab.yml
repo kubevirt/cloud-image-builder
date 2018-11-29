@@ -47,7 +47,7 @@
       shell: kubectl describe pvc {{ labs_vars.cdi_lab.pvc_name }} | grep "cdi.kubevirt.io/storage.pod.phase"
       register: fedora_importer_status
       until: fedora_importer_status.stdout.find("Succeeded") != -1
-      retries: 12
+      retries: 24
       delay: 5
 
     - name: create fedora vm
