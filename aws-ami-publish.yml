@@ -9,9 +9,9 @@
     # Assumes this playbook is executed in the same environment
     # as the build and test pipeline. This means the packer
     # build manifest is available in the file system.
-  
+
     - name: read build artifact
-      include_vars: 
+      include_vars:
         file: packer-build-manifest-aws.json
         name: build_artifact
 
@@ -44,8 +44,8 @@
         tags: "{{ source_ami_details.tags }}"
       register: published_ami_ids
       with_items:
+        - us-east-1
         - us-east-2
-        - us-west-1
         - us-west-2
         - ap-northeast-1
         - ap-northeast-2
@@ -79,7 +79,7 @@
       with_items: "{{ published_ami_ids.results }}"
 
     - name: record source AMI
-      shell: echo "{{ aws_region }}:{{ aws_ami }}" >> published-aws-image-ids 
+      shell: echo "{{ aws_region }}:{{ aws_ami }}" >> published-aws-image-ids
 
     - name: record published AMIs
       shell: echo "{{ item.item }}:{{ item.image_id }}" >> published-aws-image-ids
