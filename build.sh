@@ -7,7 +7,7 @@ if [ ! -d kubevirt-ansible ]; then
   sed -i "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
   # set specific kubevirt version
-  sed -i 's@version: 0.9.5@version: 0.10.0@' kubevirt-ansible/vars/all.yml
+  sed -i 's@version: 0.9.6@version: 0.10.0@' kubevirt-ansible/vars/all.yml
 
   #Fix for missing {{ }}
   sed -i "s/weavenet.stdout/\"{{ weavenet.stdout }}\"/" kubevirt-ansible/roles/kubernetes-master/tasks/main.yml

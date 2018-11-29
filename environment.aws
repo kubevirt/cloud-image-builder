@@ -1,9 +1,9 @@
 PACKER_BUILD_TEMPLATE=kubevirt-ami-centos.json
-AWS_SOURCE_AMI=ami-c5e5f7ba
+AWS_SOURCE_AMI=ami-0a7195c2ef185c942
 PLAYBOOK=ec2-test-centos.yml
 PLAYBOOK_CLEANUP=ec2-test-centos-cleanup.yml
 AWS_BUILD_INSTANCE_TYPE=t2.medium
-AWS_REGION=us-east-1
+AWS_REGION=us-west-1
 PACKER=./packer
 BUILD_SCRIPT=build.sh
 PLAYBOOK_DEPLOY=aws-ami-publish.yml
