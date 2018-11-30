@@ -7,6 +7,7 @@
     project_id: "{{ lookup('env', 'PROJECT_ID') }}"
     zone: "{{ lookup('env', 'ZONE') }}"
     service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
+    build_tag_name: "{{ lookup('env', 'TAG_NAME') }}"
   tasks:
     - name: wait for instance to shutdown
       gcp_compute_instance_facts:
@@ -34,3 +35,15 @@
          service_account_email: "{{ service_account_email }}"
          credentials_file: "{{ credentials_file }}"
          project_id: "{{ project_id }}"
+
+    - include_tasks: read-packer-manifest-gcp.yml
+
+    - name: delete image if this is not a release build
+      gce_img:
+        name: "{{ image }}"
+        state: absent
+        zone: "{{ zone }}"
+        service_account_email: "{{ service_account_email }}"
+        pem_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+      when: build_tag_name == ""

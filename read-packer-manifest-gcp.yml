@@ -1,0 +1,7 @@
+- name: Read build artifact
+  include_vars:
+    file: packer-build-manifest-gcp.json
+    name: build_artifact
+
+- name: Set Push Button Image Name
+  set_fact: image={{ build_artifact['builds'][0].artifact_id }}

@@ -5,6 +5,7 @@
     aws_key_name: "{{ lookup('env', 'AWS_KEY_NAME') }}"
     aws_instance_name: "{{ lookup('env', 'IMAGE_NAME') }}"
     aws_subnet_id: "{{ lookup('env', 'AWS_SUBNET_ID') }}"
+    build_tag_name: "{{ lookup('env', 'TAG_NAME') }}"
   tasks:
     - name: stop test ec2 instance
       ec2_instance:
@@ -12,3 +13,12 @@
         vpc_subnet_id: "{{ aws_subnet_id }}"
         name: "{{ aws_instance_name }}"
         state: absent
+
+    - include_tasks: read-packer-manifest-aws.yml
+
+    - name: delete image if this is not a release build
+      ec2_ami:
+        image_id: "{{ aws_ami }}"
+        delete_snapshot: true
+        state: absent
+      when: build_tag_name == ""
