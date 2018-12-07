@@ -35,7 +35,7 @@
 
     - name: copy the source AMI to other regions
       ec2_ami_copy:
-        source_region: us-east-1
+        source_region: "{{ aws_region }}"
         region: "{{ item }}"
         source_image_id: "{{ aws_ami }}"
         wait: no
