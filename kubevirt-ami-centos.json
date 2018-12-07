@@ -56,6 +56,7 @@
         "sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm",
         "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit wget git",
         "sudo yum update -y",
+        "sudo yum downgrade docker docker-common docker-client -y",
         "rm multus-config.yml"
       ]
     }

@@ -53,6 +53,7 @@
         "sudo systemctl enable kubevirt-installer",
         "sudo yum install -y ansible docker jq bind-utils bind-libs cockpit wget git",
         "sudo yum update -y",
+        "sudo yum downgrade docker docker-common docker-client -y",
         "rm multus-config.yml"
       ]
     }
