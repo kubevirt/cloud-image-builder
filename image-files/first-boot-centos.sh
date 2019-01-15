@@ -24,11 +24,15 @@ echo "export KUBECONFIG=~/admin.conf" >> /home/centos/.bash_profile
 # wait for kubernetes cluster to be up
 sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local
 
-# enable software emulation
-grep -q -E 'vmx|svm' /proc/cpuinfo || kubectl apply -f /home/centos/emulation-configmap.yaml
-
 # deploy kubevirt
-sudo ansible-playbook playbooks/kubevirt.yml -e@vars/all.yml -e cluster=kubernetes --connection=local -i inventory-aws
+kubectl create namespace kubevirt
+# enable software emulation
+grep -q -E 'vmx|svm' /proc/cpuinfo || kubectl create configmap -n kubevirt kubevirt-config --from-literal debug.useEmulation=true
+export KUBEVIRT_VERSION=$(cat /home/centos/kubevirt-version)
+wget https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/kubevirt-operator.yaml
+wget https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/kubevirt-cr.yaml
+kubectl apply -f kubevirt-operator.yaml
+kubectl apply -f kubevirt-cr.yaml
 
 # validate kubevirt pods and services are up
 mv /home/centos/after-install-checks.yml .
@@ -41,6 +45,7 @@ kubectl delete -f /tmp/cdi-provision.yml
 cd /home/centos
 sudo ansible-playbook motd.yml -v
 rm motd*
+rm kubevirt-version
 
 # cleanup
 rm cluster-wait.yml

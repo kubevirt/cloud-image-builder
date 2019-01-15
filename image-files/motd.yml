@@ -11,9 +11,7 @@
       register: kubernetes_version
 
     - name: find KubeVirt version
-      shell: |
-        cat kubevirt-ansible/vars/all.yml  |
-        grep version | grep -v openshift | awk '{ print $2 }'
+      shell: cat /home/centos/kubevirt-version
       register: kubevirt_version
 
     - name: template motd file
