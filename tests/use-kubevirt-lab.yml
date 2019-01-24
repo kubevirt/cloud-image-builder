@@ -4,28 +4,43 @@
   become: True
   gather_facts: True
   tasks:
-    - name: read in lab variables
-      include_vars:
-        file: labs_kubernetes_variables.yml
-        name: labs_vars
 
-    - debug: var=labs_vars
+    - name: Download 02_create_testvm.sh
+      get_url:
+        url: https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/_includes/scriptlets/lab1/02_create_testvm.sh
+        dest: /home/centos/02_create_testvm.sh
+        owner: centos
+        group: centos
 
     - name: create vm
-      command: kubectl apply -f {{ labs_vars.use_kubevirt_lab.vm_manifest }}
+      shell: cat /home/centos/02_create_testvm.sh | bash
+
+    - name: Download 04_start_testvm.sh
+      get_url:
+        url: https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/_includes/scriptlets/lab1/04_start_testvm.sh
+        dest: /home/centos/04_start_testvm.sh
+        owner: centos
+        group: centos
 
     - name: use virtctl to start VM
-      command: /home/centos/virtctl start {{ labs_vars.use_kubevirt_lab.vm_name }}
+      shell: cat /home/centos/04_start_testvm.sh | bash
 
     - name: wait for vm to be Running
-      shell: kubectl describe vmi {{ labs_vars.use_kubevirt_lab.vm_name }} | grep Phase
+      shell: kubectl describe vmi testvm | grep Phase
       register: vm_status
       until: vm_status.stdout.find("Running") != -1
       retries: 30
       delay: 10
 
+    - name: Download 07_stop_testvm.sh
+      get_url:
+        url: https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/_includes/scriptlets/lab1/07_stop_testvm.sh
+        dest: /home/centos/07_stop_testvm.sh
+        owner: centos
+        group: centos
+
     - name: use virtctl to stop VM
-      command: /home/centos/virtctl stop  {{ labs_vars.use_kubevirt_lab.vm_name }}
+      shell: cat /home/centos/07_stop_testvm.sh | bash
 
     - name: wait for vmi to be removed
       shell: kubectl get vmi
@@ -34,5 +49,12 @@
       retries: 30
       delay: 10
 
+    - name: Download 08_delete_testvm.sh
+      get_url:
+        url: https://raw.githubusercontent.com/kubevirt/kubevirt.github.io/master/_includes/scriptlets/lab1/08_delete_testvm.sh
+        dest: /home/centos/08_delete_testvm.sh
+        owner: centos
+        group: centos
+
     - name: cleanup vm
-      command: kubectl delete -f {{ labs_vars.use_kubevirt_lab.vm_manifest }}
+      shell: cat /home/centos/08_delete_testvm.sh | bash
