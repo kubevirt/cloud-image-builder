@@ -103,7 +103,7 @@
       register: vm_manifest
 
     - name: create fedora vm
-      command: "kubectl create -f {{ vm_manifest.stdout }}l"
+      command: "kubectl create -f {{ vm_manifest.stdout }}"
 
     - name: wait for fedora vm to be Running
       shell: kubectl describe vmi vm1 | grep Phase
@@ -116,7 +116,7 @@
       command: /home/centos/virtctl stop vm1
 
     - name: delete vm1
-      command: "kubectl delete -f {{ vm_manifest.stdout }}l"
+      command: "kubectl delete -f {{ vm_manifest.stdout }}"
 
     - name: wait for fedora vmi to be removed
       shell: kubectl get vmi
