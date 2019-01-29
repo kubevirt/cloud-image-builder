@@ -5,35 +5,35 @@
   gather_facts: True
   tasks:
     - name: wait for virt-api pod to be running
-      shell: kubectl get pods -n kube-system | grep virt-api
+      shell: kubectl get pods -n kubevirt | grep virt-api
       register: virt_api_pod_status
       until: virt_api_pod_status.stdout.find("Running") != -1
       retries: 12
       delay: 5
 
     - name: wait for virt-controller pod to be running
-      shell: kubectl get pods -n kube-system | grep virt-controller
+      shell: kubectl get pods -n kubevirt| grep virt-controller
       register: virt_controller_pod_status
       until: virt_controller_pod_status.stdout.find("Running") != -1
       retries: 12
       delay: 5
 
     - name: wait for virt-handler pod to be running
-      shell: kubectl get pods -n kube-system | grep virt-handler
+      shell: kubectl get pods -n kubevirt | grep virt-handler
       register: virt_handler_pod_status
       until: virt_handler_pod_status.stdout.find("Running") != -1
       retries: 12
       delay: 5
 
     - name: wait for virt-api service to be up
-      shell: kubectl get services -n kube-system
+      shell: kubectl get services -n kubevirt
       register: services_status
       until: services_status.stdout.find("virt-api") != -1
       retries: 12
       delay: 5
 
     - name: query virt-api's clusterIP
-      shell: kubectl get services virt-api -n kube-system  -o yaml | grep clusterIP | cut -f 4 -d " "
+      shell: kubectl get services virt-api -n kubevirt  -o yaml | grep clusterIP | cut -f 4 -d " "
       register: virt_api_cluster_ip
 
     - debug: var=virt_api_cluster_ip
