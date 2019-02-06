@@ -10,7 +10,8 @@ if [ ! -d kubevirt-ansible ]; then
   sed -i.bak "s/weavenet.stdout/\"{{ weavenet.stdout }}\"/" kubevirt-ansible/roles/kubernetes-master/tasks/main.yml
 fi
 
-export KUBEVIRT_VERSION=0.13.2
+# Update KubeVirt version here
+export KUBEVIRT_VERSION=0.14.0
 cd image-files
 # used during first-boot to decide which version of KubeVirt to install
 echo $KUBEVIRT_VERSION > kubevirt-version
