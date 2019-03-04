@@ -17,9 +17,15 @@ sudo ansible-playbook playbooks/cluster/kubernetes/cluster-localhost.yml --conne
 
 # enable kubectl for centos user
 sudo cp /etc/kubernetes/admin.conf /home/centos
+sudo ln -s ./admin.conf /home/centos
 sudo chown centos:centos /home/centos/admin.conf
 export KUBECONFIG=/home/centos/admin.conf
 echo "export KUBECONFIG=~/admin.conf" >> /home/centos/.bash_profile
+
+# Put the kubeconfig in the default place for SSH without a TTY (and profile) 
+sudo mkdir /home/centos/.kube
+sudo ln --symbolic ../admin.conf /home/centos/.kube/config
+sudo chown --recursive centos:centos /home/centos/.kube
 
 # wait for kubernetes cluster to be up
 sudo ansible-playbook /home/centos/cluster-wait.yml --connection=local
