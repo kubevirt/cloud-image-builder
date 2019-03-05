@@ -17,7 +17,6 @@ sudo ansible-playbook playbooks/cluster/kubernetes/cluster-localhost.yml --conne
 
 # enable kubectl for centos user
 sudo cp /etc/kubernetes/admin.conf /home/centos
-sudo ln -s ./admin.conf /home/centos
 sudo chown centos:centos /home/centos/admin.conf
 export KUBECONFIG=/home/centos/admin.conf
 echo "export KUBECONFIG=~/admin.conf" >> /home/centos/.bash_profile
