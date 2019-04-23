@@ -2,7 +2,7 @@
 set -x
 
 if [ ! -d kubevirt-ansible ]; then
-  git clone https://github.com/kubevirt/kubevirt-ansible
+  git clone --single-branch -b fixes-for-cloud-image-builder https://github.com/rwsu/kubevirt-ansible
 
   sed -i.bak "s@kubectl taint nodes {{ ansible_fqdn }} node-role.kubernetes.io/master:NoSchedule- || :@kubectl taint nodes --all node-role.kubernetes.io/master-@"  kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2
 
