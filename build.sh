@@ -11,7 +11,7 @@ if [ ! -d kubevirt-ansible ]; then
 fi
 
 # Update KubeVirt version here
-export KUBEVIRT_VERSION=0.14.0
+export KUBEVIRT_VERSION=0.16.1
 cd image-files
 # used during first-boot to decide which version of KubeVirt to install
 echo $KUBEVIRT_VERSION > kubevirt-version
