@@ -16,6 +16,12 @@
     "secret_key": "{{user `secret_key`}}",
     "region": "{{user `region`}}",
     "source_ami": "{{user `source_ami`}}",
+    "launch_block_device_mappings": [{
+      "device_name": "/dev/xvda",
+      "volume_size": 10,
+      "volume_type": "gp2",
+      "delete_on_termination": true
+    }],
     "instance_type": "{{user `instance_type`}}",
     "ssh_username": "centos",
     "ami_description": "KubeVirt push button trial based on {{user `kubevirt_version`}}. A minimum of 4GB of memory is recommended.",
