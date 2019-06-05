@@ -1,10 +1,13 @@
+PACKER_BIN=./packer
 PACKER_BUILD_TEMPLATE=kubevirt-ami-centos.json
+BUILD_SCRIPT=build.sh
+TEST_SCRIPT=test.sh
+CLEANUP_SCRIPT=cleanup.sh
 AWS_SOURCE_AMI=ami-0a7195c2ef185c942
-PLAYBOOK=ec2-test-centos.yml
-PLAYBOOK_CLEANUP=ec2-test-centos-cleanup.yml
 AWS_BUILD_INSTANCE_TYPE=t2.medium
 AWS_REGION=us-west-1
-PACKER=./packer
-BUILD_SCRIPT=build.sh
 PLAYBOOK_DEPLOY=aws-ami-publish.yml
+PLAYBOOK=ec2-test-centos.yml
+PLAYBOOK_CLEANUP=ec2-test-centos-cleanup.yml
 IMAGE_NAME=kubevirt-centos
+KUBEVIRT_VERSION=0.16.1

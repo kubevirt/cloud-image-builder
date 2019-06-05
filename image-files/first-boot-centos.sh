@@ -50,7 +50,7 @@ kubectl delete -f /tmp/cdi-provision.yml
 cd /home/centos
 sudo ansible-playbook motd.yml -v
 rm motd*
-rm kubevirt-version
+#rm kubevirt-version
 
 # cleanup
 rm cluster-wait.yml

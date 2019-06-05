@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -x
 
+mkdir logs
+touch job.props
+export KUBEVIRT_VERSION="0.16.1"
+
+  ## TODO: Move this clone to something underneath the kubevirt org
 if [ ! -d kubevirt-ansible ]; then
   git clone --single-branch -b fixes-for-cloud-image-builder https://github.com/rwsu/kubevirt-ansible
 
@@ -10,18 +15,17 @@ if [ ! -d kubevirt-ansible ]; then
   sed -i.bak "s/weavenet.stdout/\"{{ weavenet.stdout }}\"/" kubevirt-ansible/roles/kubernetes-master/tasks/main.yml
 fi
 
-# Update KubeVirt version here
-export KUBEVIRT_VERSION=0.16.1
-cd image-files
-# used during first-boot to decide which version of KubeVirt to install
-echo $KUBEVIRT_VERSION > kubevirt-version
-[ -f virtctl ] || curl -L -o virtctl https://github.com/kubevirt/kubevirt/releases/download/v$KUBEVIRT_VERSION/virtctl-v$KUBEVIRT_VERSION-linux-amd64
-chmod +x virtctl
-cd ..
+echo "Beginning Image Build Process"
 
-# for use by gcp image publish
+  ## Used by image bootstrap service and GCP image publish
+echo $KUBEVIRT_VERSION > image-files/kubevirt-version
 echo $KUBEVIRT_VERSION > kubevirt-version
-pwd
 
-$PACKER build -debug -machine-readable --force $PACKER_BUILD_TEMPLATE | tee build.log
+  ## Download virtctl if it's not already present
+[ -f virtctl ] || curl -L -o image-files/virtctl https://github.com/kubevirt/kubevirt/releases/download/v${KUBEVIRT_VERSION}/virtctl-v${KUBEVIRT_VERSION}-linux-amd64
+chmod +x image-files/virtctl
+
+  ## Start the actual image build
+echo "Beginning 'packer build' process..."
+$PACKER_BIN build -debug -machine-readable --force $PACKER_BUILD_TEMPLATE | tee build.log
 echo "AWS_TEST_AMI=`egrep -m1 -oe 'ami-.{8}' build.log`" >> job.props

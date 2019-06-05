@@ -160,7 +160,8 @@
     zone: "{{ lookup('env', 'ZONE') }}"
     service_account_email:  "{{ lookup('env', 'SERVICE_ACCOUNT_EMAIL') }}"
   tasks:
-    - name: delete uploader instance
+    - name: start delete of uploader instance
+      ignore_errors: yes
       gce:
          instance_names: "{{ publisher_instance_name }}"
          zone: "{{ zone }}"

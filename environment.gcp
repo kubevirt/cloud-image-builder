@@ -1,14 +1,15 @@
-# Packer build
-#export GOOGLE_APPLICATION_CREDENTIALS=""
+KUBEVIRT_VERSION=0.16.1
+PACKER_BIN=./packer
+PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
 SERVICE_ACCOUNT_EMAIL=push-button-ci@cnvlab-209908.iam.gserviceaccount.com
+PROJECT_ID=cnvlab-209908
+DISK_SIZE=30
+BUILD_SCRIPT=./build.sh
+TEST_SCRIPT=./test.sh
+CLEANUP_SCRIPT=./test.sh
 IMAGE_NAME=kubevirt-button
 MACHINE_TYPE=custom-2-8192
-PROJECT_ID=cnvlab-209908
 ZONE=us-central1-b
-DISK_SIZE=30
-PACKER=./packer
-PACKER_BUILD_TEMPLATE=kubevirt-gcp-centos.json
 PLAYBOOK=gcp-test-centos.yml
 PLAYBOOK_CLEANUP=gcp-test-centos-cleanup.yml
 PLAYBOOK_DEPLOY=gcp-image-publish.yml
-BUILD_SCRIPT=./build.sh

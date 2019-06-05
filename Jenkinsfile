@@ -46,7 +46,7 @@ images.each { imageName, imageValues ->
 
         def archives = {
             step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
-                  artifacts: 'packer-build-*.json,published-aws-image-ids', fingerprint: true])
+                  artifacts: 'packer-build-*.json,ansible-*.logpublished-aws-image-ids', fingerprint: true])
         }
 
         deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
@@ -85,7 +85,7 @@ images.each { imageName, imageValues ->
                     stage("test-image-${imageName}") {
                         def cmd = """
                         mkdir -p ~/.ssh
-                        ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK}
+                        sh \${TEST_SCRIPT}
                         """
 
 
@@ -96,7 +96,7 @@ images.each { imageName, imageValues ->
                     if (env['TAG_NAME']) {
                         stage("deploy-image-${imageName}") {
                             def cmd = """
-                            ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY}
+                            ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_DEPLOY} >ansible-${imageName}-deploy.log 2>&1
                             """
 
                             executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,
@@ -111,7 +111,7 @@ images.each { imageName, imageValues ->
                 } finally {
                     stage("cleanup-image-${imageName}") {
                         def cmd = """
-                        ansible-playbook -vvv --private-key \${SSH_KEY_LOCATION} \${PLAYBOOK_CLEANUP}
+                        sh \${CLEANUP_SCRIPT}
                         """
 
                         executeInContainer(containerName: 'ansible-executor', containerScript: cmd, stageVars: params,

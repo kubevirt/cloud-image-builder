@@ -19,7 +19,13 @@
     "instance_type": "{{user `instance_type`}}",
     "ssh_username": "centos",
     "ami_description": "KubeVirt push button trial based on {{user `kubevirt_version`}}. A minimum of 4GB of memory is recommended.",
-    "ami_name": "{{user `aws_instance_name`}}",
+    "ami_block_device_mappings": [{
+      "device_name": "/dev/sda1",
+      "volume_size": "15",
+      "volume_type": "gp2",
+      "delete_on_termination": true
+    }],
+   "ami_name": "{{user `aws_instance_name`}}",
     "subnet_id": "{{user `subnet_id`}}",
     "associate_public_ip_address": "true",
     "security_group_id": "{{user `security_group`}}",
