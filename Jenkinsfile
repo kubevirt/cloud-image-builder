@@ -46,7 +46,7 @@ images.each { imageName, imageValues ->
 
         def archives = {
             step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
-                  artifacts: 'packer-build-*.json,ansible-*.logpublished-aws-image-ids', fingerprint: true])
+                  artifacts: 'packer-build-*.json,ansible-*.log,published-aws-image-ids', fingerprint: true])
         }
 
         deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
