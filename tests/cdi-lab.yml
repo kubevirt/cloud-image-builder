@@ -144,11 +144,11 @@
       register: cdi_manifest
 
     - name: delete cdi
-      command: "kubectl delete -f {{ cdi_manifest.stdout }}"
+      command: "kubectl delete --grace-period=10 -f {{ cdi_manifest.stdout }}"
 
     - name: get storage manifest
       shell: cat /home/centos/01_get_storage_manifest.sh | cut -d ' ' -f 2
       register: storage_manifest
 
     - name: delete hostpath storage class
-      command: "kubectl delete -f {{ storage_manifest.stdout }}"
+      command: "kubectl delete --grace-period=10 -f {{ storage_manifest.stdout }}"
