@@ -143,6 +143,12 @@
       shell: cat /home/centos/02_get_cdi_controller_manifest.sh | cut -d ' ' -f 2
       register: cdi_manifest
 
+    - name: delete CRD cdiconfigs.cdi.kubevirt.io
+      command: kubectl -n cdi delete crd cdiconfigs.cdi.kubevirt.io
+
+    - name: delete CRD datavolumes.cdi.kubevirt.io
+      command: kubectl -n cdi delete crd datavolumes.cdi.kubevirt.io
+
     - name: delete cdi
       command: "kubectl delete --grace-period=10 -f {{ cdi_manifest.stdout }}"
 
