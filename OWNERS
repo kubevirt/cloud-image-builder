@@ -2,12 +2,9 @@ reviewers:
   - jparrill
   - codificat
   - iranzo
-  - karmab
-  - tripledes
-  - joeldavis84
-  - DirectedSoul1
+  - ptrnull
 approvers:
-  - joeldavis84
   - jparrill
   - codificat
-  - karmab
+  - iranzo
+  - ptrnull
