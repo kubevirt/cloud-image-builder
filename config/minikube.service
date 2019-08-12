@@ -1,0 +1,15 @@
+[Unit]
+Description=Starts and Stops minikube cluster on boot
+After=libvirtd.service network.target
+
+[Service]
+Type=oneshot
+User=centos
+RemainAfterExit=true
+WorkingDirectory=/home/centos
+ExecStop=/usr/bin/minikube stop -p kubevirt
+ExecStart=/usr/bin/minikube start -p kubevirt
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,9 +1,0 @@
-- name: shutdown instance
-  hosts: launched
-  user: centos
-  become: True
-  gather_facts: True
-  tasks:
-    - name: shutdown instance
-      command: shutdown -h +1
-      become_user: root

@@ -1,7 +1,0 @@
-- name: Run tests against image
-  hosts: localhost
-
-- include: pretest-checks.yml
-- include: use-kubevirt-lab.yml
-- include: cdi-lab.yml
-- include: test-instance-shutdown.yml

@@ -1,0 +1,36 @@
+---
+- name: Create Image From Running Instance
+  hosts: localhost
+  gather_facts: False
+  vars:
+    credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
+    build_id: "{{ lookup('env', 'buildID') }}"
+  tasks:
+  - name: Shut Down Running Instance
+    gce:
+      service_account_email: "push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
+      credentials_file: "{{ credentials_file }}"
+      zone: "us-central1-b"
+      project_id: "cnvlab-209908"
+      instance_names: "kubevirt-imagebuilder-minikube-{{ build_id }}"
+      state: "stopped"
+  - name: Create Image From Disk
+    gcp_compute_image:
+      state: "present"
+      auth_kind: "serviceaccount"
+      service_account_file: "{{ credentials_file }}"
+      project: "cnvlab-209908"
+      name: "kubevirt-minikube-image-build{{build_id}}"
+      family: "kubevirt-labci-minikube"
+      description: "CI Generated Image For Minishift Lab on Kubevirt.io"
+      disk_size_gb: 30
+      source_disk:
+        selfLink: "projects/cnvlab-209908/zones/us-central1-b/disks/kubevirt-imagebuilder-minikube-{{ build_id }}"
+  - name: Delete Built VM Instance
+    gce:
+      service_account_email: "push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
+      credentials_file: "{{ credentials_file }}"
+      zone: "us-central1-b"
+      project_id: "cnvlab-209908"
+      instance_names: "kubevirt-imagebuilder-minikube-{{ build_id }}"
+      state: "absent"

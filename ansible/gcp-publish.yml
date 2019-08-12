@@ -1,0 +1,37 @@
+---
+- name: "Use gsutil To Copy New Image To GCP Bucket"
+  hosts: "all"
+  remote_user: "centos"
+  gather_facts: "False"
+  vars:
+    build_id: "{{ lookup('env', 'buildID') }}"
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
+    credentials_file: "{{ lookup('env', 'GOOGLE_APPLICATION_CREDENTIALS') }}"
+  tasks:
+  - name: "Copying Service Account Credentials To Remote Host"
+    copy:
+      src: "{{ credentials_file }}"
+      dest: "/tmp/google-creds"
+      mode: "0600"
+  - name: "Authenticate With The Google API"
+    shell: "gcloud auth activate-service-account push-button-ci@cnvlab-209908.iam.gserviceaccount.com --key-file=/tmp/google-creds --project=cnvlab-209908"
+  - name: "Export New Image Using gsutil"
+    shell: "gcloud compute images export --destination-uri gs://kubevirt-button/kubevirt-{{ kubevirt_version }}-{{ build_id }}.tar.gz --image kubevirt-labci-gce-{{ build_id }} --project cnvlab-209908"
+  - name: "Shut Down Running Instance"
+    delegate_to: "localhost"
+    gce:
+      service_account_email: "push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
+      credentials_file: "{{ credentials_file }}"
+      zone: "us-central1-b"
+      project_id: "cnvlab-209908"
+      instance_names: "kubevirt-imagepublisher-gce-{{ build_id }}"
+      state: "stopped"
+  - name: "Deleting Source Instance"
+    delegate_to: "localhost"
+    gce:
+      service_account_email: "push-button-ci@cnvlab-209908.iam.gserviceaccount.com"
+      credentials_file: "{{ credentials_file }}"
+      zone: "us-central1-b"
+      project_id: "cnvlab-209908"
+      instance_names: "kubevirt-imagepublisher-gce-{{ build_id }}"
+      state: "absent"
