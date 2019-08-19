@@ -1,0 +1,46 @@
+---
+- name: "Create Image From A Running EC2 Instance"
+  hosts: "localhost"
+  gather_facts: "False"
+  vars:
+    aws_key_id: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+    aws_key_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+    aws_ssh_keypair: "{{ lookup('env','AWS_KEY_NAME') }}"
+    aws_instance_id: "{{ (lookup('file', '/tmp/launched_instances') | from_json)[0] }}"
+    build_id: "{{ lookup('env', 'buildID') }}"
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
+  tasks:
+  - name: "Shutting Down Given EC2 Instance"
+    ec2:
+      aws_access_key: "{{ aws_key_id }}"
+      aws_secret_key: "{{ aws_key_secret }}"
+      instance_id: "{{ aws_instance_id }}"
+      state: "stopped"
+      region: "us-west-1"
+      wait: true
+  - name: "Create EC2 AMI From Instance"
+    register: "new_ami"
+    ec2_ami:
+      aws_access_key: "{{ aws_key_id }}"
+      aws_secret_key: "{{ aws_key_secret }}"
+      instance_id: "{{ aws_instance_id }}"
+      region: "us-west-1"
+      launch_permissions:
+        group_names: ['all']
+      wait: "yes"
+      name: "kubevirt-{{ kubevirt_version }}-{{ build_id }}"
+      tags:
+        Name: "kubevirt-{{ kubevirt_version }}-{{ build_id }}"
+  - name: "Writing Root AMI image (us-west-1) to /tmp/root-ami-id"
+    copy:
+      content: "{{ new_ami.image_id }}"
+      dest: "/tmp/root-ami-id"
+      mode: "0400"
+  - name: "Terminating Given EC2 Instance"
+    ec2:
+      aws_access_key: "{{ aws_key_id }}"
+      aws_secret_key: "{{ aws_key_secret }}"
+      instance_id: "{{ aws_instance_id }}"
+      state: "absent"
+      region: "us-west-1"
+      wait: true

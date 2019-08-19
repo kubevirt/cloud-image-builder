@@ -1,0 +1,48 @@
+---
+- name: "Provision New EC2 CentOS Instance"
+  hosts: "localhost"
+  gather_facts: "False"
+  vars:
+    aws_key_id: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+    aws_ssh_keypair: "{{ lookup('env','AWS_KEY_NAME') }}"
+    aws_key_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+    build_id: "{{ lookup('env', 'buildID') }}"
+  tasks:
+  - name: "Launch new instance on AWS"
+    register: "ec2"
+    ec2:
+      aws_access_key: "{{ aws_key_id }}"
+      aws_secret_key: "{{ aws_key_secret }}"
+      key_name: "{{ aws_ssh_keypair }}"
+      group_id: "sg-0d3bbafc626b5601f"
+      instance_type: "t2.medium"
+      image: "ami-0a7195c2ef185c942"
+      state: "present"
+      wait: true
+      region: "us-west-1"
+      vpc_subnet_id: "subnet-06841259e5431c9ed"
+      assign_public_ip: "yes"
+      volumes:
+      - device_name: "/dev/sda1"
+        device_type: "gp2"
+        volume_size: "30"
+        delete_on_termination: "true"
+      instance_tags:
+        KubevirtCI: "yes"
+        Name: "kubevirt-labci-imagebuild{{ build_id }}"
+  - name: "Write Instance ID to /tmp/launched_instances"
+    copy:
+      content: '{{ ec2.instance_ids }}'
+      dest: "/tmp/launched_instances"
+    delegate_to: "localhost"
+  - name: "Write instance IP to /tmp/inventory"
+    copy:
+      content: "{{ ec2.instances[0].public_ip }}"
+      dest: "/tmp/inventory"
+    delegate_to: "localhost"
+  - name: "Wait for SSH to become available"
+    wait_for:
+      host: "{{ ec2.instances[0].public_ip }}"
+      port: 22
+      timeout: 620
+      state: "started"

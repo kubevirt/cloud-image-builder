@@ -1,0 +1,102 @@
+##########################
+## This Play book is separated into two in order to pick up on group membership changes:
+##   First Play: System maintenance tasks (installing packages, group memberships, etc).
+##   Second Play: Get Regular user "centos" ready to run kubectl commands.
+##########################
+---
+
+- name: "Set System Up For minikube"
+  hosts: all
+  gather_facts: False
+  remote_user: "centos"
+  tasks:
+  - name: "Install Required Packages"
+    become: True
+    yum:
+      state: "present"
+      name:
+      - "qemu-system-x86"
+      - "seabios"
+      - "libvirt-client"
+      - "libvirt-daemon-kvm"
+      - "qemu-kvm" 
+      - "kubectl"
+      - "jq"
+      - "wget"
+  - name: "Enable and Restart libvirtd"
+    become: True
+    service:
+      name: "libvirtd"
+      enabled: "yes"
+      state: "restarted"
+  - name: Adding centos User To libvirt Group
+    become: True
+    user:
+      name: "centos"
+      group: "centos"
+      groups: 
+      - "libvirt"
+      - "google-sudoers"
+  - name: Download and Install minikube Binary
+    become: True
+    copy:
+      src: "../bin/minikube"
+      dest: "/usr/bin/minikube"
+      mode: '0755'
+  - name: Download and Install Docker KVM2 Driver
+    become: True
+    copy:
+      src:  "../bin/docker-machine-driver-kvm2"
+      dest: "/usr/bin/docker-machine-driver-kvm2"
+      mode: '0755'
+  - name: Download and Install virtctl Binary to PATH
+    become: True
+    copy:
+      src: "../bin/virtctl"
+      dest: "/usr/bin/virtctl"
+      mode: '0755'
+  - name: Download and Install virtctl Binary to centos Home Directory
+    become: True
+    copy:
+      src: "../bin/virtctl"
+      dest: "/home/centos/virtctl"
+      mode: '0755'
+      owner: "centos"
+  - name: Download Definition For Default libvirt Network
+    copy:
+      src: "../config/libvirt-default-network.xml"
+      dest: "/tmp/default-net.xml"
+      mode: '0440'
+  - name: Create and Start Default libvirt Network
+    become: True
+    shell: "virsh net-define /tmp/default-net.xml && virsh net-start default"
+
+  ## Second Play
+- name: "Get centos User Ready To Run minikube"
+  hosts: all
+  gather_facts: False
+  remote_user: "centos"
+  tasks:
+  - name: "Set Minikube Default Driver"
+    shell: "minikube config set -p kubevirt vm-driver kvm2"
+  - name: "Set Minikube Memory Defaults"
+    shell: "minikube config -p kubevirt set memory 4096"
+  - name: "Bring Up minikube Cluster"
+    shell: "minikube start -p kubevirt"
+  - name: "Install Kubevirt Operator"
+    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.18.0/kubevirt-operator.yaml"
+  - name: "Set Emulation ConfigMap"
+    shell: "kubectl create configmap kubevirt-config -n kubevirt --from-literal debug.useEmulation=true"
+  - name: "Create Kubevirt CRD"
+    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.18.0/kubevirt-cr.yaml"
+  - name: "Configure minikube To Start On Boot"
+    become: True
+    copy:
+      src: "../config/minikube.service"
+      dest: "/etc/systemd/system/multi-user.target.wants/minikube.service"
+      mode: "0644"
+  - name: "Pause Until virt-operator Containers Are All In A READY State"
+    register: virtop_containers
+    shell: kubectl get pods -n kubevirt -l kubevirt.io=virt-operator -o json | jq -r '.items[].status.conditions[] | select(.type == "Ready").status' | uniq
+    until: virtop_containers.stdout == "True"
+    retries: 15

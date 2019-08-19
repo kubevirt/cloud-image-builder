@@ -1,0 +1,78 @@
+---
+- name: "Set GCE Up For kubevirt-ansible Run At Next Boot"
+  hosts: "all"
+  gather_facts: "False"
+  remote_user: "centos"
+  vars:
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
+  tasks:
+  - name: "Install Needed Packages"
+    become: "True"
+    yum:
+      state: "latest"
+      name:
+      - "kubectl"
+      - "jq"
+      - "ansible"
+      - "docker"
+      - "bind-utils"
+      - "bind-libs"
+      - "cockpit"
+      - "wget"
+      - "git"
+  - name: "Set Remote KubeVirt Version"
+    copy:
+      content: "{{kubevirt_version}}"
+      dest: "/home/centos/kubevirt-version"
+      mode: "0600"
+  - name: "Copy First Boot Script"
+    become: "True"
+    copy:
+      src: "../shell/first-boot.sh"
+      dest: "/usr/local/bin"
+      mode: "0755"
+  - name: "Copy kubevirt-installer Service File"
+    become: "True"
+    copy:
+      src: "../config/kubevirt-installer.service"
+      dest: "/usr/lib/systemd/system/kubevirt-installer.service"
+      mode: "0600"
+  - name: "Configure kubevirt-installer Service To Run On Next Boot"
+    become: "True"
+    service:
+      name: "kubevirt-installer"
+      enabled: "yes"
+      state: "stopped"
+  - name: "Clone kubevirt-ansible Onto The Remote Instance"
+    git:
+      repo: "https://github.com/kubevirt/kubevirt-ansible.git"
+      dest: "/home/centos/kubevirt-ansible"
+      version: "release-0.12"
+  - name: "Copy Localhost Cluster Playbook"
+    copy:
+      src: "../config/cluster-localhost.yml"
+      dest: "/home/centos/kubevirt-ansible/playbooks/cluster/kubernetes/cluster-localhost.yml"
+  - name: "Override deploy_kubernetes.j2 template"
+    copy:
+      src: "../shell/deploy_kubernetes.j2"
+      dest: "/home/centos/kubevirt-ansible/roles/kubernetes-master/templates/deploy_kubernetes.j2"
+  - name: "Ensure /etc/systemd/system/kubelet.service.d exists for playbook run"
+    become: "True"
+    file:
+      path: "/etc/systemd/system/kubelet.service.d"
+      state: "directory"
+      mode: "0755"
+  - name: "Copy virtctl to /home/centos"
+    become: "True"
+    copy:
+      src: "../bin/virtctl"
+      dest: "/home/centos/virtctl"
+      mode: "0500"
+      owner: "centos"
+      group: "centos"
+  - name: "Copy virtctl to /usr/bin"
+    become: "True"
+    copy:
+      src: "../bin/virtctl"
+      dest: "/usr/bin/virtctl"
+      mode: "0755"

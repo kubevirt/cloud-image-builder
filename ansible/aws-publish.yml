@@ -1,0 +1,66 @@
+---
+- name: "Take Root AMI From us-west-1 Region And Publish To Selected Regions"
+  hosts: "localhost"
+  gather_facts: "False"
+  vars:
+    build_id: "{{ lookup('env', 'buildID') }}"
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
+    aws_key_id: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+    aws_key_secret: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+    aws_root_ami: "{{ lookup('file','/tmp/root-ami-id') }}"
+    ec2Regions:
+      - us-east-1
+      - us-east-2
+      - us-west-2
+      - ca-central-1
+      - eu-west-1
+      - eu-west-2
+      - eu-west-3
+      - eu-central-1
+      - ap-northeast-1
+      - ap-southeast-1
+      - ap-southeast-2
+      - ap-south-1
+      - sa-east-1
+  tasks:
+  - name: "Copy AMI From us-west-1 To All Target Regions"
+    register: "ami_return"
+    ec2_ami_copy:
+      aws_access_key: "{{ aws_key_id }}"
+      aws_secret_key: "{{ aws_key_secret }}"
+      name: "kubevirt-{{ kubevirt_version }}-{{ build_id }}"
+      source_region: "us-west-1"
+      region: "{{ item }}"
+      source_image_id: "{{ aws_root_ami }}"
+      wait: "True"
+      wait_timeout: "3600"
+    with_items: "{{ ec2Regions }}"
+  - name: "Setting Visibility to Public On New AMI's"
+    ec2_ami:
+      region: "{{ item.item }}"
+      image_id: "{{ item.image_id }}"
+      launch_permissions:
+        group_names: ['all']
+    with_items: "{{ ami_return.results }}"
+  - name: "AMI promotion results to /tmp/copied-image-ids"
+    copy:
+      content: "{{ ami_return.results }}"
+      dest: "/tmp/copied-image-ids"
+  - name: "Create JSON for Root AMI"
+    set_fact:
+      final_dict:
+      -  region: "us-west-1"
+         ami_id: "{{ aws_root_ami }}"
+  - name: "Read JSON For Copied AMI"
+    set_fact:
+      copied_ami: "{{ lookup('file','/tmp/copied-image-ids') | from_json }}"
+  - name: "Merge Root AMI and Copied AMI JSON"
+    set_fact:
+      final_dict: "{{ final_dict + [{'region': item.item, 'ami_id': item.image_id}] }}"
+    with_items: "{{ copied_ami }}"
+  - name: "Write Final JSON TO new-images.json"
+    copy:
+      content: "{{ final_dict | to_nice_json }}"
+      dest: "../new-images.json"
+      mode: "0400"
+

@@ -1,0 +1,12 @@
+- name: install kubernetes 
+  hosts: localhost
+  connection: local
+
+  pre_tasks:
+    - name: override roles variables
+      include_vars: "{{ item }}"
+      with_items:
+        - "{{ playbook_dir }}/vars/default_vars.yml"
+  roles:
+    - kubernetes-prerequisites
+    - kubernetes-master
