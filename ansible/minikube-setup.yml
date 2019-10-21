@@ -9,6 +9,8 @@
   hosts: all
   gather_facts: False
   remote_user: "centos"
+  vars:
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
   tasks:
   - name: "Install Required Packages"
     become: True
@@ -39,8 +41,8 @@
       - "google-sudoers"
   - name: Download and Install minikube Binary
     become: True
-    copy:
-      src: "../bin/minikube"
+    get_url:
+      url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
       dest: "/usr/bin/minikube"
       mode: '0755'
   - name: Download and Install Docker KVM2 Driver
@@ -51,14 +53,14 @@
       mode: '0755'
   - name: Download and Install virtctl Binary to PATH
     become: True
-    copy:
-      src: "../bin/virtctl"
+    get_url:
+      url: https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64
       dest: "/usr/bin/virtctl"
       mode: '0755'
   - name: Download and Install virtctl Binary to centos Home Directory
     become: True
     copy:
-      src: "../bin/virtctl"
+      src: "/usr/bin/virtctl"
       dest: "/home/centos/virtctl"
       mode: '0755'
       owner: "centos"
@@ -84,11 +86,11 @@
   - name: "Bring Up minikube Cluster"
     shell: "minikube start -p kubevirt"
   - name: "Install Kubevirt Operator"
-    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.22.0/kubevirt-operator.yaml"
+    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/kubevirt-operator.yaml"
   - name: "Set Emulation ConfigMap"
     shell: "kubectl create configmap kubevirt-config -n kubevirt --from-literal debug.useEmulation=true"
   - name: "Create Kubevirt CRD"
-    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.22.0/kubevirt-cr.yaml"
+    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/kubevirt-cr.yaml"
   - name: "Configure minikube To Start On Boot"
     become: True
     copy:

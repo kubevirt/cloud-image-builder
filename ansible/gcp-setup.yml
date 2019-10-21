@@ -64,15 +64,15 @@
       mode: "0755"
   - name: "Copy virtctl to /home/centos"
     become: "True"
-    copy:
-      src: "../bin/virtctl"
+    get_url:
+      url: https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64
       dest: "/home/centos/virtctl"
       mode: "0500"
       owner: "centos"
       group: "centos"
   - name: "Copy virtctl to /usr/bin"
     become: "True"
-    copy:
-      src: "../bin/virtctl"
+    get_url:
+      url: https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64
       dest: "/usr/bin/virtctl"
-      mode: "0755"
+      mode: '0755'
