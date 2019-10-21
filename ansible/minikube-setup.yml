@@ -19,7 +19,7 @@
       - "seabios"
       - "libvirt-client"
       - "libvirt-daemon-kvm"
-      - "qemu-kvm" 
+      - "qemu-kvm"
       - "kubectl"
       - "jq"
       - "wget"
@@ -34,7 +34,7 @@
     user:
       name: "centos"
       group: "centos"
-      groups: 
+      groups:
       - "libvirt"
       - "google-sudoers"
   - name: Download and Install minikube Binary
@@ -84,11 +84,11 @@
   - name: "Bring Up minikube Cluster"
     shell: "minikube start -p kubevirt"
   - name: "Install Kubevirt Operator"
-    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.18.0/kubevirt-operator.yaml"
+    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.22.0/kubevirt-operator.yaml"
   - name: "Set Emulation ConfigMap"
     shell: "kubectl create configmap kubevirt-config -n kubevirt --from-literal debug.useEmulation=true"
   - name: "Create Kubevirt CRD"
-    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.18.0/kubevirt-cr.yaml"
+    shell: "kubectl create -f https://github.com/kubevirt/kubevirt/releases/download/v0.22.0/kubevirt-cr.yaml"
   - name: "Configure minikube To Start On Boot"
     become: True
     copy:
