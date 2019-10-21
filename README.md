@@ -17,7 +17,7 @@ This script will execute 3 ansible playbooks:
 
 - `${PROVIDER}-provision.yml`: Creates the instance on ${PROVIDER} and waits for SSH access (CentOS7)
 - `${PROVIDER}-setup.yml`: Download/Copy the needed resources, installs a script called `first-boot.sh` which will install K8s and then Kubevirt on it when the user create an instance of that image (not on the image generation).
-- `${PROVIDER}-mkimage.yml`: Stops the instance, Create a ${PROVIDER} Image from the stopped instance, Deletes the source instance and then creates a new instance of googlecloud-sdk prepared to upload the image to a GCS bucket (but not yet). 
+- `${PROVIDER}-mkimage.yml`: Stops the instance, Create a ${PROVIDER} Image from the stopped instance, Deletes the source instance and then creates a new instance of googlecloud-sdk prepared to upload the image to a GCS bucket (but not yet).
 
 Then the next step comes in:
 
@@ -63,4 +63,3 @@ This repo let the user to access to an instance on GCE or AWS which contains all
 - Reduce Ansible `copy` tasks using loops.
 - Delete bin folder in order to download from internet.
 - Deploy Kubevirt and CDI using operator instead of kubevirt-ansible.
-- Move those repositories under Kubevirt Organization
