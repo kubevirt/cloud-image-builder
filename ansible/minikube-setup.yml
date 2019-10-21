@@ -45,12 +45,6 @@
       url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
       dest: "/usr/bin/minikube"
       mode: '0755'
-  - name: Download and Install Docker KVM2 Driver
-    become: True
-    copy:
-      src:  "../bin/docker-machine-driver-kvm2"
-      dest: "/usr/bin/docker-machine-driver-kvm2"
-      mode: '0755'
   - name: Download and Install virtctl Binary to PATH
     become: True
     get_url:
