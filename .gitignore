@@ -1,3 +1,4 @@
 kubevirt-ansible
 virtctl
 kubectl
+.history/
