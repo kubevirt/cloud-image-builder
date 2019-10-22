@@ -42,19 +42,19 @@
   - name: Download and Install minikube Binary
     become: True
     get_url:
-      url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64"
       dest: "/usr/bin/minikube"
       mode: '0755'
   - name: Download and Install virtctl Binary to PATH
     become: True
     get_url:
-      url: https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64
+      url: "https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64"
       dest: "/usr/bin/virtctl"
       mode: '0755'
   - name: Download and Install virtctl Binary to centos Home Directory
     become: True
-    copy:
-      src: "/usr/bin/virtctl"
+    get_url:
+      url: "https://github.com/kubevirt/kubevirt/releases/download/v{{ kubevirt_version }}/virtctl-v{{ kubevirt_version }}-linux-amd64"
       dest: "/home/centos/virtctl"
       mode: '0755'
       owner: "centos"
