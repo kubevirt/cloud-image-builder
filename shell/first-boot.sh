@@ -72,7 +72,7 @@ cat <<EOI > /etc/motd
 Welcome to KubeVirt Push Button Trial
 
 Kubernetes and KubeVirt have been pre-installed for you. You may use
-the guide at http://kubevirt.io/labs/kubernetes.html to explore more.
+the guide at https://kubevirt.io/labs/ to explore more.
 
 Found a problem? Please report it to
 https://github.com/kubevirt/cloud-image-builder/issues.
