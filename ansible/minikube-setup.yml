@@ -69,6 +69,8 @@
 
   ## Second Play
 - name: "Get centos User Ready To Run minikube"
+  vars:
+    kubevirt_version: "{{ lookup('env', 'KUBEVIRT_VERSION') }}"
   hosts: all
   gather_facts: False
   remote_user: "centos"
