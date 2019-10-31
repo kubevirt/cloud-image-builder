@@ -5,7 +5,7 @@ This repository will contain the Image generation for AWS, GCP and also for Mini
 ## Resources
 
 - Jenkins jobs:
-    - Image Generation: https://jenkins-kubevirt.apps.ci.centos.org/job/dev/job/jodavis/job/kvio-lab-images/
+    - Image Generation: https://jenkins-kubevirt.apps.ci.centos.org/job/cloud-image-builder/
 
 ## Workflow
 
