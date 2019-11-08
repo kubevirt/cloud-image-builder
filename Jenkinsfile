@@ -75,14 +75,14 @@ cloudEnvironments.each { environName, environValues ->
 
 
     def archives = {
-      step([$class   : 'ArtifactArchiver', allowEmptyArchive: true,
-           artifacts: 'ansible-*.log,*.json', fingerprint: true])
+      step([$class: 'ArtifactArchiver', allowEmptyArchive: true,
+           artifacts: '**/ansible-*.log,**/*.json'])
     }
 
     deployOpenShiftTemplate(containersWithProps: containers, openshift_namespace: 'kubevirt', podName: podName,
          docker_repo_url: '172.30.254.79:5000', jenkins_slave_image: 'jenkins-contra-slave:latest') {
 
-      ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), archiveArtifacts: archives, timeout: 300, sendMetrics: false) {
+      ciPipeline(buildPrefix: 'kubevirt-image-builder', decorateBuild: decoratePRBuild(), postBuild: archives, timeout: 300, sendMetrics: false) {
         try {
 
             // Each branch of execution should start by setting various values to their environment-specific settings.
