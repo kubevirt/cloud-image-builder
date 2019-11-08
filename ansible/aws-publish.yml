@@ -58,9 +58,11 @@
     set_fact:
       final_dict: "{{ final_dict + [{'region': item.item, 'ami_id': item.image_id}] }}"
     with_items: "{{ copied_ami }}"
+  - name: "Show final JSON"
+    debug:
+      msg: "{{ final_dict }}"
   - name: "Write Final JSON TO new-images.json"
     copy:
       content: "{{ final_dict | to_nice_json }}"
       dest: "../new-images.json"
       mode: "0400"
-
