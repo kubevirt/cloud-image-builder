@@ -23,7 +23,11 @@ $(hostname)
 EOI
 
 ## TODO: fix this in a PR and remove this line
+## https://github.com/kubevirt/kubevirt-ansible/pull/626
 sed -i '/ipalloc_range:/ s/weavenet.stdout/"{{weavenet.stdout}}"/g' /home/centos/kubevirt-ansible/playbooks/cluster/kubernetes/roles/kubernetes-master/tasks/main.yml
+
+## https://github.com/kubevirt/kubevirt-ansible/pull/625
+sed -i 's/failed_when: "result|failed and not .* in result.msg"/ignore_errors: yes/g' /home/centos/kubevirt-ansible/roles/kubernetes-prerequisites/tasks/main.yml
 
 ## Bootstrap a Kubernetes cluster using kubevirt-ansible
 ansible-playbook -vvv playbooks/cluster/kubernetes/cluster-localhost.yml --connection=local -i $INVENTORY_FILE >/tmp/ansible-output.log 2>&1
