@@ -35,19 +35,20 @@ On AWS case, this last step changes. The YAML file will propagate the AMI image 
 
 ### AWS Regions to propagate to
 
+- us-west-1
 - us-east-1
-- us-east-2
-- us-west-2
-- ca-central-1
+- # disabled us-east-2
+- # disabled  us-west-2
+- # disabled  ca-central-1
 - eu-west-1
-- eu-west-2
-- eu-west-3
-- eu-central-1
-- ap-northeast-1
+- # disabled  eu-west-2
+- # disabled  eu-west-3
+- # disabled  eu-central-1
+- # disabled  ap-northeast-1
 - ap-southeast-1
-- ap-southeast-2
-- ap-south-1
-- sa-east-1
+- # disabled  ap-southeast-2
+- # disabled  ap-south-1
+- # disabled  sa-east-1
 
 ## Enhancements
 
