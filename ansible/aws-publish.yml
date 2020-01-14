@@ -10,18 +10,8 @@
     aws_root_ami: "{{ lookup('file','/tmp/root-ami-id') }}"
     ec2Regions:
       - us-east-1
-      - us-east-2
-      - us-west-2
-      - ca-central-1
       - eu-west-1
-      - eu-west-2
-      - eu-west-3
-      - eu-central-1
-      - ap-northeast-1
       - ap-southeast-1
-      - ap-southeast-2
-      - ap-south-1
-      - sa-east-1
   tasks:
   - name: "Copy AMI From us-west-1 To All Target Regions"
     register: "ami_return"
