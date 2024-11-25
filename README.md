@@ -1,3 +1,5 @@
+**⚠️ This repository is deprecated and no longer maintained.**
+
 # Cloud Image Builder
 
 This repository will contain the Image generation for AWS, GCP and also for Minikube.
